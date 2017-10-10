@@ -13,6 +13,10 @@ import java.util.logging.Logger;
  */
 public class MatrixReader {
 
+    private static int flipNumber(int number) {
+        return number == 2 ? -2 : number;
+    }
+
     public int[][] read() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
             Pair<Integer, Integer> size = readSize(reader);
@@ -20,7 +24,10 @@ public class MatrixReader {
 
             for (int i = 0; i < data.length; i++) {
                 String[] stringNumbers = reader.readLine().split(" ");
-                data[i] = Arrays.stream(stringNumbers).mapToInt(Integer::parseInt).toArray();
+                data[i] = Arrays.stream(stringNumbers)
+                        .mapToInt(Integer::parseInt)
+                        .map(MatrixReader::flipNumber)
+                        .toArray();
             }
 
             return data;
@@ -30,7 +37,7 @@ public class MatrixReader {
         }
     }
 
-    public Pair<Integer, Integer> readSize(BufferedReader reader) throws IOException {
+    private Pair<Integer, Integer> readSize(BufferedReader reader) throws IOException {
         String[] line = reader.readLine().split(" ");
         int rows = Integer.parseInt(line[0]);
         int columns = Integer.parseInt(line[1]);

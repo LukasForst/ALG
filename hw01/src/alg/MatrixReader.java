@@ -17,15 +17,12 @@ public class MatrixReader {
         return number == 2 ? -2 : number;
     }
 
-    private int rows = 0;
-    private int columns = 0;
-
     public Triplet[][] read() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
 
             Pair<Integer, Integer> size = readSize(reader);
-            rows = size.getLeft();
-            columns = size.getRight();
+            int rows = size.getLeft();
+            int columns = size.getRight();
 
             Triplet[][] data = new Triplet[rows][columns];
 
@@ -39,7 +36,6 @@ public class MatrixReader {
                     int computedValue = realValue;
                     int numberOfPositiveFields = realValue == 1 ? 1 : 0;
                     Triplet currentTriplet = new Triplet(realValue, computedValue, numberOfPositiveFields);
-
 
                     if (i - 1 >= 0 && j - 1 >= 0) {
                         currentTriplet.subtract(data[i - 1][j - 1]);

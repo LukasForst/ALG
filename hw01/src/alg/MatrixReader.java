@@ -17,23 +17,52 @@ public class MatrixReader {
         return number == 2 ? -2 : number;
     }
 
-    public int[][] read() {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
-            Pair<Integer, Integer> size = readSize(reader);
-            int[][] data = new int[size.getLeft()][];
+    private int rows = 0;
+    private int columns = 0;
 
-            for (int i = 0; i < data.length; i++) {
-                String[] stringNumbers = reader.readLine().split(" ");
-                data[i] = Arrays.stream(stringNumbers)
+    public Triplet[][] read() {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
+
+            Pair<Integer, Integer> size = readSize(reader);
+            rows = size.getLeft();
+            columns = size.getRight();
+
+            Triplet[][] data = new Triplet[rows][columns];
+
+            for (int i = 0; i < rows; i++) {
+                int[] lineNumbers = Arrays.stream(reader.readLine().split(" "))
                         .mapToInt(Integer::parseInt)
                         .map(MatrixReader::flipNumber)
                         .toArray();
+                for (int j = 0; j < columns; j++) {
+                    int realValue = lineNumbers[j];
+                    int computedValue = realValue;
+                    int numberOfPositiveFields = realValue == 1 ? 1 : 0;
+                    Triplet currentTriplet = new Triplet(realValue, computedValue, numberOfPositiveFields);
+
+
+                    if (i - 1 >= 0 && j - 1 >= 0) {
+                        currentTriplet.subtract(data[i - 1][j - 1]);
+                        currentTriplet.add(data[i - 1][j]);
+                        currentTriplet.add(data[i][j - 1]);
+
+                    } else {
+                        if (i - 1 >= 0) {
+                            currentTriplet.add(data[i - 1][j]);
+                        }
+
+                        if (j - 1 >= 0) {
+                            currentTriplet.add(data[i][j - 1]);
+                        }
+                    }
+                    data[i][j] = currentTriplet;
+                }
             }
 
             return data;
         } catch (Exception e) {
             Logger.getGlobal().log(Level.WARNING, e.toString());
-            return new int[0][0];
+            return new Triplet[0][0];
         }
     }
 

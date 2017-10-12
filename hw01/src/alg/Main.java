@@ -9,7 +9,12 @@ public class Main {
         MatrixReader reader = new MatrixReader();
         MatrixSolver solver = new MatrixSolver();
 
-        int[][] data = reader.read();
-        System.out.println(solver.solve(data));
+        Triplet[][] data = reader.read();
+        for (Triplet[] row : data) {
+            for (Triplet triplet : row) {
+                System.out.print(triplet + " ");
+            }
+            System.out.println();
+        }
     }
 }

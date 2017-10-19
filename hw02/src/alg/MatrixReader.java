@@ -37,5 +37,4 @@ public class MatrixReader {
         }
         return result;
     }
-
 }

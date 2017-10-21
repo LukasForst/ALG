@@ -1,65 +1,69 @@
 package alg;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class MatrixSolver {
     private Data data;
+    private int[][] matrix;
+
     private int minPrice = Integer.MAX_VALUE;
 
     public MatrixSolver(Data data) {
         this.data = data;
+        matrix = data.getMatrix();
     }
 
     public int solve() {
         int[] availableDevices = new int[data.getNumberOfDevices()];
-        int[] availablePlaces = new int[data.getNumberOfDevices()];
-        ArrayList<AbstractMap.SimpleEntry<Integer, Integer>> placedDevices = new ArrayList<>();
+        int[] placedDevices = new int[data.getNumberOfDevices()];
 
         for (int i = 0; i < availableDevices.length; i++) {
             availableDevices[i] = i;
-            availablePlaces[i] = i;
+            placedDevices[i] = -1;
         }
-        return recursiveSolve(availableDevices, availablePlaces, placedDevices);
+        return recursiveSolve(availableDevices, placedDevices, 0, 0);
     }
 
-    private int recursiveSolve(int[] availableDevices, int[] availablePlaces, List<AbstractMap.SimpleEntry<Integer, Integer>> placedDevices) {
-        if (areWiresCrossed(placedDevices)) {
+    private int recursiveSolve(int[] availableDevices, int[] placedDevices, int currentCost, int depth) {
+        if (currentCost > minPrice || areWiresCrossed(placedDevices, depth)) {
             return Integer.MAX_VALUE;
-        } else if (isComplete(availableDevices.length, availablePlaces.length)) {
-            return getCost(placedDevices);
+        } else if (isComplete(availableDevices.length, (int) Arrays.stream(placedDevices).filter(number -> number != -1).count())) {
+            minPrice = minPrice > currentCost ? currentCost : minPrice;
+            System.out.println("Possible cost: " + currentCost);
+            return currentCost;
         }
 
         ArrayList<Integer> results = new ArrayList<>();
         for (int device : availableDevices) {
-            for (int availablePlace : availablePlaces) {
-                List<AbstractMap.SimpleEntry<Integer, Integer>> nextPlacedDevices = new ArrayList<>(placedDevices);
-                nextPlacedDevices.add(new AbstractMap.SimpleEntry<>(availablePlace, device));
+            placedDevices[depth] = device;
+            int[] available = Arrays.stream(availableDevices).filter(dev -> dev != device).toArray();
+            int nextDepth = depth + 1;
+            int cost = getCost(placedDevices, currentCost, depth);
 
-                int result = recursiveSolve(
-                        Arrays.stream(availableDevices).filter(d -> d != device).toArray(),
-                        Arrays.stream(availablePlaces).filter(p -> p != availablePlace).toArray(),
-                        nextPlacedDevices);
+            int result = recursiveSolve(
+                    available,
+                    placedDevices,
+                    cost,
+                    nextDepth);
 
-                results.add(result);
-            }
+            results.add(result);
         }
 
         return Collections.min(results);
     }
 
-    private int getCost(List<AbstractMap.SimpleEntry<Integer, Integer>> placedDevices) {
-        int cost = 0;
-        for (AbstractMap.SimpleEntry<Integer, Integer> entry : placedDevices) {
-            cost += data.getMatrix()[entry.getKey()][entry.getValue()];
-        }
-        return cost;
+    private int getCost(int[] placedDevices, int currentCost, int depth) {
+        currentCost += placedDevices[depth] == -1 ? 0 : matrix[depth][placedDevices[depth]];
+        return currentCost;
     }
 
-    private boolean areWiresCrossed(List<AbstractMap.SimpleEntry<Integer, Integer>> placedDevices) {
+    private boolean areWiresCrossed(int[] placedDevices, int depth) {
         return false;
     }
 
-    private boolean isComplete(int availableDevicesCount, int availablePlacesCount) {
-        return availableDevicesCount == 0 && availablePlacesCount == 0;
+    private boolean isComplete(int availableDevicesCount, int placedDevices) {
+        return availableDevicesCount == 0 && placedDevices == data.getNumberOfDevices();
     }
 }

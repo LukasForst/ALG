@@ -1,8 +1,7 @@
 package alg;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class MatrixSolver {
     private Data data;
@@ -27,16 +26,24 @@ public class MatrixSolver {
     }
 
     private int recursiveSolve(int[] availableDevices, int[] placedDevices, int currentCost, int depth) {
-        if (currentCost > minPrice || areWiresCrossed(placedDevices, depth)) {
+        if (currentCost > minPrice) {
             return Integer.MAX_VALUE;
         } else if (isComplete(availableDevices.length, (int) Arrays.stream(placedDevices).filter(number -> number != -1).count())) {
             minPrice = minPrice > currentCost ? currentCost : minPrice;
-            System.out.println("Possible cost: " + currentCost);
             return currentCost;
+        } else if (areWiresCrossed(placedDevices, depth)) {
+            return Integer.MAX_VALUE;
         }
 
+
+        int[] sortedArray = Arrays.stream(availableDevices)
+                .boxed()
+                .sorted(Comparator.comparingInt(a -> matrix[depth][a]))
+                .mapToInt(x -> x)
+                .toArray();
+
         ArrayList<Integer> results = new ArrayList<>();
-        for (int device : availableDevices) {
+        for (int device : sortedArray) {
             placedDevices[depth] = device;
             int[] available = Arrays.stream(availableDevices).filter(dev -> dev != device).toArray();
             int nextDepth = depth + 1;
@@ -59,7 +66,31 @@ public class MatrixSolver {
         return currentCost;
     }
 
+    private Stack<Integer> stack = new Stack<>();
+
     private boolean areWiresCrossed(int[] placedDevices, int depth) {
+        if (depth != -1)
+            return false;
+        int currentDevice = placedDevices[depth - 1];
+
+        Set<Integer> possibleConnectionDevices = new HashSet<>();
+        data.getPaths().stream()
+                .filter(x -> x.getKey() == currentDevice || x.getValue() == currentDevice)
+                .forEach(x -> possibleConnectionDevices.add(x.getKey() == currentDevice ? x.getValue() : x.getKey()));
+
+        for (int destination : possibleConnectionDevices) {
+            if (stack.contains(destination)) {
+                int stackHead = stack.peek();
+
+                if (!possibleConnectionDevices.contains(stackHead)) {
+                    return true;
+                } else {
+                    stack.pop();
+                }
+            } else {
+                stack.push(currentDevice);
+            }
+        }
         return false;
     }
 

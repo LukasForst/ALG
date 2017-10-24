@@ -24,19 +24,13 @@ public class MatrixSolver {
         return recursiveSolve(availableDevices, placedDevices, 0, 0);
     }
 
-    private void fixStack() {
-        stack = (Stack<Integer>) backUpStack.clone();
-    }
-
     private int recursiveSolve(int[] availableDevices, int[] placedDevices, int currentCost, int depth) {
         if (currentCost > minPrice) {
             return Integer.MAX_VALUE;
         } else if (areWiresCrossed(placedDevices, depth)) {
-            fixStack();
             return Integer.MAX_VALUE;
         } else if (isComplete(availableDevices.length, (int) Arrays.stream(placedDevices).filter(number -> number != -1).count())) {
             minPrice = minPrice > currentCost ? currentCost : minPrice;
-            fixStack();
             return currentCost;
         }
 
@@ -69,41 +63,40 @@ public class MatrixSolver {
         return currentCost;
     }
 
-    private Stack<Integer> stack = new Stack<>();
-    private Stack<Integer> backUpStack = new Stack<>();
     private boolean areWiresCrossed(int[] placedDevices, int depth) {
-        if (depth == 0)
-            return false;
-        int currentDevice = placedDevices[depth - 1];
+        Stack<Integer> stack = new Stack<>();
+        for(int i = 0; i < depth; i++){
+            int currentDevice = placedDevices[i];
+            Set<Integer> possibleConnectionDevices = new HashSet<>();
+            data.getPaths().stream()
+                    .filter(x -> x.getKey() == currentDevice || x.getValue() == currentDevice)
+                    .forEach(x -> possibleConnectionDevices.add(x.getKey() == currentDevice ? x.getValue() : x.getKey()));
 
-        Set<Integer> possibleConnectionDevices = new HashSet<>();
-        data.getPaths().stream()
-                .filter(x -> x.getKey() == currentDevice || x.getValue() == currentDevice)
-                .forEach(x -> possibleConnectionDevices.add(x.getKey() == currentDevice ? x.getValue() : x.getKey()));
-        backUpStack = (Stack<Integer>) stack.clone();
+            int pushTimes = 0;
+            Stack<Integer> backUp = (Stack<Integer>) stack.clone();
 
-        int pushTimes = 0;
-        int popTimes = 0;
-        for (int destination : possibleConnectionDevices) {
-            if (stack.contains(destination)) {
-                int stackHead = stack.peek();
+            for (int destination : possibleConnectionDevices) {
+                if (backUp.contains(destination)) {
+                    int stackHead = stack.peek();
 
-                if (!possibleConnectionDevices.contains(stackHead)) {
-                    return true;
+                    if (!possibleConnectionDevices.contains(stackHead)) {
+                        return true;
+                    } else {
+                        stack.pop();
+                    }
                 } else {
-                    popTimes++;
+                    pushTimes++;
                 }
-            } else {
-                pushTimes++;
             }
-        }
 
-        for (int i = 0; i < pushTimes; i++) {
-            stack.push(currentDevice);
-        }
+            for (int j = 0; j < pushTimes; j++) {
+                stack.push(currentDevice);
+            }
 
-        for (int i = 0; i < popTimes; i++) {
-            stack.pop();
+
+        }
+        if(depth == data.getNumberOfDevices()){
+            return !stack.isEmpty();
         }
         return false;
     }

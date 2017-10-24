@@ -1,7 +1,6 @@
 package alg;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MatrixSolver {
     private Data data;
@@ -25,14 +24,20 @@ public class MatrixSolver {
         return recursiveSolve(availableDevices, placedDevices, 0, 0);
     }
 
+    private void fixStack() {
+        stack = (Stack<Integer>) backUpStack.clone();
+    }
+
     private int recursiveSolve(int[] availableDevices, int[] placedDevices, int currentCost, int depth) {
         if (currentCost > minPrice) {
             return Integer.MAX_VALUE;
+        } else if (areWiresCrossed(placedDevices, depth)) {
+            fixStack();
+            return Integer.MAX_VALUE;
         } else if (isComplete(availableDevices.length, (int) Arrays.stream(placedDevices).filter(number -> number != -1).count())) {
             minPrice = minPrice > currentCost ? currentCost : minPrice;
+            fixStack();
             return currentCost;
-        } else if (areWiresCrossed(placedDevices, depth)) {
-            return Integer.MAX_VALUE;
         }
 
 
@@ -51,13 +56,11 @@ public class MatrixSolver {
 
             int result = recursiveSolve(
                     available,
-                    placedDevices,
+                    placedDevices.clone(),
                     cost,
                     nextDepth);
-
             results.add(result);
         }
-
         return Collections.min(results);
     }
 
@@ -67,9 +70,9 @@ public class MatrixSolver {
     }
 
     private Stack<Integer> stack = new Stack<>();
-
+    private Stack<Integer> backUpStack = new Stack<>();
     private boolean areWiresCrossed(int[] placedDevices, int depth) {
-        if (depth != -1)
+        if (depth == 0)
             return false;
         int currentDevice = placedDevices[depth - 1];
 
@@ -77,7 +80,10 @@ public class MatrixSolver {
         data.getPaths().stream()
                 .filter(x -> x.getKey() == currentDevice || x.getValue() == currentDevice)
                 .forEach(x -> possibleConnectionDevices.add(x.getKey() == currentDevice ? x.getValue() : x.getKey()));
+        backUpStack = (Stack<Integer>) stack.clone();
 
+        int pushTimes = 0;
+        int popTimes = 0;
         for (int destination : possibleConnectionDevices) {
             if (stack.contains(destination)) {
                 int stackHead = stack.peek();
@@ -85,11 +91,19 @@ public class MatrixSolver {
                 if (!possibleConnectionDevices.contains(stackHead)) {
                     return true;
                 } else {
-                    stack.pop();
+                    popTimes++;
                 }
             } else {
-                stack.push(currentDevice);
+                pushTimes++;
             }
+        }
+
+        for (int i = 0; i < pushTimes; i++) {
+            stack.push(currentDevice);
+        }
+
+        for (int i = 0; i < popTimes; i++) {
+            stack.pop();
         }
         return false;
     }

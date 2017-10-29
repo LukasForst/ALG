@@ -7,11 +7,17 @@ public class Data {
     private int[][] matrix;
     private int numberOfDevices;
     private List<List<Integer>> paths;
+    private int minPriceForPlacement;
 
-    public Data(int[][] matrix, int numberOfDevices, List<List<Integer>> paths) {
+    public Data(int[][] matrix, int numberOfDevices, List<List<Integer>> paths, int minPriceForPlacement) {
         this.matrix = matrix;
         this.numberOfDevices = numberOfDevices;
         this.paths = paths;
+        this.minPriceForPlacement = minPriceForPlacement;
+    }
+
+    public int getMinPriceForPlacement() {
+        return minPriceForPlacement;
     }
 
     public int[][] getMatrix() {

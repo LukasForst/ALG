@@ -8,11 +8,13 @@ public class MatrixSolver {
     private int[][] matrix;
     private int minPrice = Integer.MAX_VALUE;
     private int numberOfDevices;
+    private int minDevicePlacement;
 
     public MatrixSolver(Data data) {
         matrix = data.getMatrix();
         paths = data.getPaths();
         numberOfDevices = matrix.length;
+        minDevicePlacement = data.getMinPriceForPlacement();
     }
 
     public int solve() {
@@ -32,15 +34,12 @@ public class MatrixSolver {
             placedDevices[depth] = device;
             int cost = currentCost + matrix[depth][device];
 
-            if(cost > minPrice){
-                continue;
-            }
-
             int[] available = getNewAvailable(availableDevices, device);
             int nextDepth = depth + 1;
 
-            if (areWiresCrossed(placedDevices, nextDepth))
+            if (cost + (available.length * minDevicePlacement) >= minPrice || areWiresCrossed(placedDevices, nextDepth)) {
                 continue;
+            }
 
             if (available.length == 0) {
                 minPrice = minPrice > cost ? cost : minPrice;

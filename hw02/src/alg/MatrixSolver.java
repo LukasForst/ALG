@@ -3,19 +3,20 @@ package alg;
 import java.util.*;
 
 public class MatrixSolver {
-    private Data data;
+    private List<List<Integer>> paths;
     private int[][] matrix;
-
     private int minPrice = Integer.MAX_VALUE;
+    private int numberOfDevides;
 
     public MatrixSolver(Data data) {
-        this.data = data;
         matrix = data.getMatrix();
+        paths = data.getPaths();
+        numberOfDevides = matrix.length;
     }
 
     public int solve() {
-        int[] availableDevices = new int[data.getNumberOfDevices()];
-        int[] placedDevices = new int[data.getNumberOfDevices()];
+        int[] availableDevices = new int[numberOfDevides];
+        int[] placedDevices = new int[numberOfDevides];
 
         for (int i = 0; i < availableDevices.length; i++) {
             availableDevices[i] = i;
@@ -40,11 +41,7 @@ public class MatrixSolver {
                 continue;
             }
 
-            int result = recursiveSolve(
-                    available,
-                    placedDevices.clone(),
-                    cost,
-                    nextDepth);
+            recursiveSolve(available, placedDevices, cost, nextDepth);
         }
         return minPrice;
     }
@@ -59,46 +56,67 @@ public class MatrixSolver {
             if (dev != device) {
                 val[idx++] = dev;
             }
-
         }
         return val;
     }
 
+    private Stack<Integer> stack = new Stack<>();
+    private int lastDepth = 0;
     private boolean areWiresCrossed(int[] placedDevices, int depth) {
-        Stack<Integer> stack = new Stack<>();
-        List<Integer> possibleConnectionDevices;
 
-        for (int i = 0; i < depth; i++) {
-            int currentDevice = placedDevices[i];
-            possibleConnectionDevices = data.getPaths().get(currentDevice);
-            int pushTimes = 0;
-            Stack<Integer> backUp = (Stack<Integer>) stack.clone();
-
-            for(int j = 0; j < possibleConnectionDevices.size(); j++){
-                int destination = possibleConnectionDevices.get(j);
-                if (backUp.contains(destination)) {
-                    int stackHead = stack.peek();
-
-                    if (stackHead == destination) {
-                        stack.pop();
-                    } else if(possibleConnectionDevices.contains(stackHead)){
-                        stack.pop();
-                    } else{
-                        return true;
-                    }
-
-                } else {
-                    pushTimes++;
+        if(lastDepth < depth){
+            int currentDevice = placedDevices[depth - 1];
+            if(checkOneDeviceStack(currentDevice, stack)){
+                return true;
+            }
+            lastDepth = depth;
+        } else {
+            stack.clear();
+            for (int i = 0; i < depth; i++) {
+                int currentDevice = placedDevices[i];
+                if(checkOneDeviceStack(currentDevice, stack)){
+                    return true;
                 }
             }
-
-            for (int j = 0; j < pushTimes; j++) {
-                stack.push(currentDevice);
-            }
+            lastDepth = depth;
         }
-        if (depth == data.getNumberOfDevices()) {
+
+        if (depth == numberOfDevides) {
             return !stack.isEmpty();
         }
+        return false;
+    }
+
+
+    private boolean checkOneDeviceStack(int currentDevice, Stack<Integer> stack){
+        List<Integer> possibleConnectionDevices;
+
+        possibleConnectionDevices = paths.get(currentDevice);
+        int pushTimes = 0;
+        Stack<Integer> backUp = (Stack<Integer>) stack.clone();
+
+        for (int j = 0; j < possibleConnectionDevices.size(); j++) {
+            int destination = possibleConnectionDevices.get(j);
+            if (backUp.contains(destination)) {
+                int stackHead = stack.peek();
+
+                if (stackHead == destination) {
+                    stack.pop();
+                } else if (possibleConnectionDevices.contains(stackHead)) {
+                    stack.pop();
+                } else {
+                    return true;
+                }
+
+            } else {
+                pushTimes++;
+            }
+        }
+
+        for (int j = 0; j < pushTimes; j++) {
+            stack.push(currentDevice);
+        }
+
         return false;
     }
 }

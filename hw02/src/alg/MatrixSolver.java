@@ -21,21 +21,21 @@ public class MatrixSolver {
             availableDevices[i] = i;
             placedDevices[i] = -1;
         }
+
         return recursiveSolve(availableDevices, placedDevices, 0, 0);
     }
 
     private int recursiveSolve(int[] availableDevices, int[] placedDevices, int currentCost, int depth) {
-
         for (int device : availableDevices) {
             placedDevices[depth] = device;
-            int[] available = Arrays.stream(availableDevices).filter(dev -> dev != device).toArray();
+            int[] available = getNewAvailable(availableDevices, device);
             int nextDepth = depth + 1;
-            int cost = getCost(placedDevices, currentCost, depth);
+            int cost = currentCost + matrix[depth][device];
 
-            if(cost > minPrice || areWiresCrossed(placedDevices, nextDepth))
+            if (cost > minPrice || areWiresCrossed(placedDevices, nextDepth))
                 continue;
 
-            if(available.length == 0){
+            if (available.length == 0) {
                 minPrice = minPrice > cost ? cost : minPrice;
                 continue;
             }
@@ -49,32 +49,44 @@ public class MatrixSolver {
         return minPrice;
     }
 
-    private int getCost(int[] placedDevices, int currentCost, int depth) {
-        currentCost += placedDevices[depth] == -1 ? 0 : matrix[depth][placedDevices[depth]];
-        return currentCost;
+    private int[] getNewAvailable(int[] available, int device) {
+        if (available.length == 0) {
+            return new int[0];
+        }
+        int[] val = new int[available.length - 1];
+        int idx = 0;
+        for (int dev : available) {
+            if (dev != device) {
+                val[idx++] = dev;
+            }
+
+        }
+        return val;
     }
 
     private boolean areWiresCrossed(int[] placedDevices, int depth) {
         Stack<Integer> stack = new Stack<>();
-        for(int i = 0; i < depth; i++){
-            int currentDevice = placedDevices[i];
-            List<Integer> possibleConnectionDevices = new ArrayList<>();
-            data.getPaths().stream()
-                    .filter(x -> x.getKey() == currentDevice || x.getValue() == currentDevice)
-                    .forEach(x -> possibleConnectionDevices.add(x.getKey() == currentDevice ? x.getValue() : x.getKey()));
+        List<Integer> possibleConnectionDevices;
 
+        for (int i = 0; i < depth; i++) {
+            int currentDevice = placedDevices[i];
+            possibleConnectionDevices = getPaths(currentDevice);
             int pushTimes = 0;
             Stack<Integer> backUp = (Stack<Integer>) stack.clone();
 
-            for (int destination : possibleConnectionDevices) {
+            for(int j = 0; j < possibleConnectionDevices.size(); j++){
+                int destination = possibleConnectionDevices.get(j);
                 if (backUp.contains(destination)) {
                     int stackHead = stack.peek();
 
-                    if (!possibleConnectionDevices.contains(stackHead)) {
-                        return true;
-                    } else {
+                    if (stackHead == destination) {
                         stack.pop();
+                    } else if(possibleConnectionDevices.contains(stackHead)){
+                        stack.pop();
+                    } else{
+                        return true;
                     }
+
                 } else {
                     pushTimes++;
                 }
@@ -83,12 +95,23 @@ public class MatrixSolver {
             for (int j = 0; j < pushTimes; j++) {
                 stack.push(currentDevice);
             }
-
-
         }
-        if(depth == data.getNumberOfDevices()){
+        if (depth == data.getNumberOfDevices()) {
             return !stack.isEmpty();
         }
         return false;
+    }
+
+    private List<Integer> getPaths(int currentDevice) {
+        List<AbstractMap.SimpleEntry<Integer, Integer>> paths = data.getPaths();
+        List<Integer> list = new ArrayList<>();
+
+        for (AbstractMap.SimpleEntry<Integer, Integer> x : paths) {
+            if (x.getKey() == currentDevice || x.getValue() == currentDevice) {
+                int toAdd =x.getKey() == currentDevice ? x.getValue() : x.getKey();
+                list.add(toAdd);
+            }
+        }
+        return list;
     }
 }

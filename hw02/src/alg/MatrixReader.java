@@ -21,7 +21,7 @@ public class MatrixReader {
                         .mapToInt(Integer::parseInt).toArray();
             }
 
-            ArrayList<AbstractMap.SimpleEntry<Integer, Integer>> paths = new ArrayList<>();
+            ArrayList<AbstractMap.SimpleEntry<Integer, Integer>> paths = new ArrayList<>(numberOfDevices);
             String line;
 
             while ((line = reader.readLine()) != null && !line.isEmpty()) {

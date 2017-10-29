@@ -9,7 +9,6 @@ public class Main {
         Data result = reader.readData();
 
         MatrixSolver solver = new MatrixSolver(result);
-
         long startTime = System.currentTimeMillis();
         System.out.println(solver.solve());
 

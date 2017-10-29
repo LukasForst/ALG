@@ -70,7 +70,7 @@ public class MatrixSolver {
 
         for (int i = 0; i < depth; i++) {
             int currentDevice = placedDevices[i];
-            possibleConnectionDevices = getPaths(currentDevice);
+            possibleConnectionDevices = data.getPaths().get(currentDevice);
             int pushTimes = 0;
             Stack<Integer> backUp = (Stack<Integer>) stack.clone();
 
@@ -100,18 +100,5 @@ public class MatrixSolver {
             return !stack.isEmpty();
         }
         return false;
-    }
-
-    private List<Integer> getPaths(int currentDevice) {
-        List<AbstractMap.SimpleEntry<Integer, Integer>> paths = data.getPaths();
-        List<Integer> list = new ArrayList<>();
-
-        for (AbstractMap.SimpleEntry<Integer, Integer> x : paths) {
-            if (x.getKey() == currentDevice || x.getValue() == currentDevice) {
-                int toAdd =x.getKey() == currentDevice ? x.getValue() : x.getKey();
-                list.add(toAdd);
-            }
-        }
-        return list;
     }
 }

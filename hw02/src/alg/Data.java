@@ -1,15 +1,14 @@
 package alg;
 
-import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.List;
 
 public class Data {
     private int[][] matrix;
     private int numberOfDevices;
-    private List<AbstractMap.SimpleEntry<Integer, Integer>> paths;
+    private List<List<Integer>> paths;
 
-    public Data(int[][] matrix, int numberOfDevices, List<AbstractMap.SimpleEntry<Integer, Integer>> paths) {
+    public Data(int[][] matrix, int numberOfDevices, List<List<Integer>> paths) {
         this.matrix = matrix;
         this.numberOfDevices = numberOfDevices;
         this.paths = paths;
@@ -23,7 +22,7 @@ public class Data {
         return numberOfDevices;
     }
 
-    public List<AbstractMap.SimpleEntry<Integer, Integer>> getPaths() {
+    public List<List<Integer>> getPaths() {
         return paths;
     }
 
@@ -58,9 +57,12 @@ public class Data {
             builder.append("\n");
         }
 
-        for (AbstractMap.SimpleEntry<Integer, Integer> path :
-                paths) {
-            builder.append(path.getKey()).append(" ").append(path.getValue()).append("\n");
+        for(int i = 0; i < paths.size(); i++){
+            builder.append(i).append(" - ");
+            for(int j = 0; j < paths.get(i).size(); j++){
+                builder.append(paths.get(i).get(j)).append(" ");
+            }
+            builder.append("\n");
         }
 
         builder.append("\n");

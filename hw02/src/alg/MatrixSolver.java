@@ -1,22 +1,23 @@
 package alg;
 
-import java.util.*;
+import java.util.List;
+import java.util.Stack;
 
 public class MatrixSolver {
     private List<List<Integer>> paths;
     private int[][] matrix;
     private int minPrice = Integer.MAX_VALUE;
-    private int numberOfDevides;
+    private int numberOfDevices;
 
     public MatrixSolver(Data data) {
         matrix = data.getMatrix();
         paths = data.getPaths();
-        numberOfDevides = matrix.length;
+        numberOfDevices = matrix.length;
     }
 
     public int solve() {
-        int[] availableDevices = new int[numberOfDevides];
-        int[] placedDevices = new int[numberOfDevides];
+        int[] availableDevices = new int[numberOfDevices];
+        int[] placedDevices = new int[numberOfDevices];
 
         for (int i = 0; i < availableDevices.length; i++) {
             availableDevices[i] = i;
@@ -29,11 +30,16 @@ public class MatrixSolver {
     private int recursiveSolve(int[] availableDevices, int[] placedDevices, int currentCost, int depth) {
         for (int device : availableDevices) {
             placedDevices[depth] = device;
-            int[] available = getNewAvailable(availableDevices, device);
-            int nextDepth = depth + 1;
             int cost = currentCost + matrix[depth][device];
 
-            if (cost > minPrice || areWiresCrossed(placedDevices, nextDepth))
+            if(cost > minPrice){
+                continue;
+            }
+
+            int[] available = getNewAvailable(availableDevices, device);
+            int nextDepth = depth + 1;
+
+            if (areWiresCrossed(placedDevices, nextDepth))
                 continue;
 
             if (available.length == 0) {
@@ -62,49 +68,44 @@ public class MatrixSolver {
 
     private Stack<Integer> stack = new Stack<>();
     private int lastDepth = 0;
+
     private boolean areWiresCrossed(int[] placedDevices, int depth) {
 
-        if(lastDepth < depth){
-            int currentDevice = placedDevices[depth - 1];
-            if(checkOneDeviceStack(currentDevice, stack)){
-                return true;
-            }
-            lastDepth = depth;
-        } else {
+        if (lastDepth >= depth) {
             stack.clear();
             for (int i = 0; i < depth; i++) {
                 int currentDevice = placedDevices[i];
-                if(checkOneDeviceStack(currentDevice, stack)){
+                if (checkOneDeviceStack(currentDevice, stack)) {
                     return true;
                 }
             }
-            lastDepth = depth;
+        } else {
+            int currentDevice = placedDevices[depth - 1];
+            if (checkOneDeviceStack(currentDevice, stack)) {
+                return true;
+            }
         }
 
-        if (depth == numberOfDevides) {
-            return !stack.isEmpty();
-        }
-        return false;
+        lastDepth = depth;
+        return depth == numberOfDevices && !stack.isEmpty();
     }
 
 
-    private boolean checkOneDeviceStack(int currentDevice, Stack<Integer> stack){
+    private boolean checkOneDeviceStack(int currentDevice, Stack<Integer> stack) {
         List<Integer> possibleConnectionDevices;
 
         possibleConnectionDevices = paths.get(currentDevice);
         int pushTimes = 0;
-        Stack<Integer> backUp = (Stack<Integer>) stack.clone();
 
-        for (int j = 0; j < possibleConnectionDevices.size(); j++) {
-            int destination = possibleConnectionDevices.get(j);
+        @SuppressWarnings("unchecked") // we know that this is integer stack
+                Stack<Integer> backUp = (Stack<Integer>) stack.clone();
+
+        for (int destination : possibleConnectionDevices) {
             if (backUp.contains(destination)) {
-                int stackHead = stack.peek();
+                int stackHead = stack.pop();
 
-                if (stackHead == destination) {
-                    stack.pop();
-                } else if (possibleConnectionDevices.contains(stackHead)) {
-                    stack.pop();
-                } else {
+                if (stackHead != destination && !possibleConnectionDevices.contains(stackHead)) {
+                    stack.push(stackHead);
                     return true;
                 }
 

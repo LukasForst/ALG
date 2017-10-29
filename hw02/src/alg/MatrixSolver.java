@@ -25,37 +25,28 @@ public class MatrixSolver {
     }
 
     private int recursiveSolve(int[] availableDevices, int[] placedDevices, int currentCost, int depth) {
-        if (currentCost > minPrice) {
-            return Integer.MAX_VALUE;
-        } else if (areWiresCrossed(placedDevices, depth)) {
-            return Integer.MAX_VALUE;
-        } else if (isComplete(availableDevices.length, (int) Arrays.stream(placedDevices).filter(number -> number != -1).count())) {
-            minPrice = minPrice > currentCost ? currentCost : minPrice;
-            return currentCost;
-        }
 
-
-        int[] sortedArray = Arrays.stream(availableDevices)
-                .boxed()
-                .sorted(Comparator.comparingInt(a -> matrix[depth][a]))
-                .mapToInt(x -> x)
-                .toArray();
-
-        ArrayList<Integer> results = new ArrayList<>();
-        for (int device : sortedArray) {
+        for (int device : availableDevices) {
             placedDevices[depth] = device;
             int[] available = Arrays.stream(availableDevices).filter(dev -> dev != device).toArray();
             int nextDepth = depth + 1;
             int cost = getCost(placedDevices, currentCost, depth);
+
+            if(cost > minPrice || areWiresCrossed(placedDevices, nextDepth))
+                continue;
+
+            if(available.length == 0){
+                minPrice = minPrice > cost ? cost : minPrice;
+                continue;
+            }
 
             int result = recursiveSolve(
                     available,
                     placedDevices.clone(),
                     cost,
                     nextDepth);
-            results.add(result);
         }
-        return Collections.min(results);
+        return minPrice;
     }
 
     private int getCost(int[] placedDevices, int currentCost, int depth) {
@@ -67,7 +58,7 @@ public class MatrixSolver {
         Stack<Integer> stack = new Stack<>();
         for(int i = 0; i < depth; i++){
             int currentDevice = placedDevices[i];
-            Set<Integer> possibleConnectionDevices = new HashSet<>();
+            List<Integer> possibleConnectionDevices = new ArrayList<>();
             data.getPaths().stream()
                     .filter(x -> x.getKey() == currentDevice || x.getValue() == currentDevice)
                     .forEach(x -> possibleConnectionDevices.add(x.getKey() == currentDevice ? x.getValue() : x.getKey()));
@@ -99,9 +90,5 @@ public class MatrixSolver {
             return !stack.isEmpty();
         }
         return false;
-    }
-
-    private boolean isComplete(int availableDevicesCount, int placedDevices) {
-        return availableDevicesCount == 0 && placedDevices == data.getNumberOfDevices();
     }
 }

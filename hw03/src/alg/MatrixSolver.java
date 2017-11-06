@@ -7,7 +7,7 @@ public class MatrixSolver {
     private final Map<Integer, Set<Integer>> connections;
     private final List<Integer> possibleSockets;
 
-    private final Set<Integer> visited;
+    private final Map<Integer, Integer> visited;
     private final List<Integer> sockets;
     private final Queue<Integer> toVisit;
 
@@ -19,16 +19,14 @@ public class MatrixSolver {
         possibleSockets = data.getPossibleSockets();
 
         int initialCapacity = data.getNumberOfNodes() / 2;
-        visited = new HashSet<>(data.getNumberOfNodes());
+        visited = new HashMap<>(data.getNumberOfNodes());
         sockets = new ArrayList<>(initialCapacity);
-        toVisit = new PriorityQueue<>(initialCapacity);
+        toVisit = new ArrayDeque<>(initialCapacity);
     }
 
     public List<Integer> solve() {
         for (int node : possibleSockets) {
-            recursiveSolve(node, 0);
-
-            if (hasSolution) {
+            if (recursiveSolve(node, 0) == RecursiveStatus.SOLVED) {
                 break;
             }
         }
@@ -37,7 +35,35 @@ public class MatrixSolver {
         return sockets;
     }
 
-    private void recursiveSolve(int initialNode, int depth) {
+    private RecursiveStatus recursiveSolve(int initialNode, int depth) {
+        if (visited.containsKey(initialNode)) {
+            if (visited.get(initialNode) != depth) {
+                sockets.clear();
+                visited.clear();
+                return RecursiveStatus.WRONG_NODE;
+            } else {
+                sockets.add(initialNode);
+                if (toVisit.peek() != null) {
+                    return recursiveSolve(toVisit.poll(), ++depth);
+                } else {
+                    return RecursiveStatus.SOLVED;
+                }
+            }
+        } else {
+            visited.put(initialNode, depth);
+        }
 
+        toVisit.addAll(connections.get(initialNode));
+        toVisit.remove(initialNode);
+
+        if (toVisit.peek() == null) {
+            return RecursiveStatus.SOLVED;
+        } else {
+            return recursiveSolve(toVisit.poll(), ++depth);
+        }
+    }
+
+    private enum RecursiveStatus {
+        WRONG_NODE, SOLVED, NEXT_NODE
     }
 }

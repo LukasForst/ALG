@@ -14,7 +14,7 @@ public class Main {
         Data result = reader.readData();
 
         System.out.println(result);
-        /*MatrixSolver solver = new MatrixSolver(result);
+        MatrixSolver solver = new MatrixSolver(result);
         long startTime = System.currentTimeMillis();
         List<Integer> solved = solver.solve();
         System.out.println(Arrays.toString(solved.toArray()));
@@ -22,6 +22,5 @@ public class Main {
         long endTime   = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.out.println("Execution time: " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
-*/
     }
 }

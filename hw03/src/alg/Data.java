@@ -6,11 +6,13 @@ public class Data {
     private final int numberOfNodes;
     private final int numberOfConnections;
     private final Map<Integer, Set<Integer>> connections;
+    private final List<Integer> possibleSockets;
 
-    public Data(int numberOfNodes, int numberOfConnections, Map<Integer, Set<Integer>> connections) {
+    public Data(int numberOfNodes, int numberOfConnections, Map<Integer, Set<Integer>> connections, List<Integer> possibleSockets) {
         this.numberOfNodes = numberOfNodes;
         this.numberOfConnections = numberOfConnections;
         this.connections = connections;
+        this.possibleSockets = possibleSockets;
     }
 
     public int getNumberOfNodes() {
@@ -23,6 +25,10 @@ public class Data {
 
     public Map<Integer, Set<Integer>> getConnections() {
         return connections;
+    }
+
+    public List<Integer> getPossibleSockets() {
+        return possibleSockets;
     }
 
     @Override
@@ -39,6 +45,12 @@ public class Data {
             sb.append("\n");
         }
 
+        sb.append("Possible sockets:\n");
+        for (int node : possibleSockets) {
+            sb.append(node).append(" ");
+        }
+        sb.append("\n");
+
         return sb.toString();
     }
 
@@ -50,7 +62,17 @@ class DataBuilder {
     private Map<Integer, Set<Integer>> connections = new LinkedHashMap<>();
 
     public Data build() {
-        return new Data(numberOfNodes, numberOfConnections, connections);
+        TreeMap<Integer, Set<Integer>> treeMap = new TreeMap<>();
+        treeMap.putAll(connections);
+
+        List<Integer> possibleSockets = new ArrayList<>(numberOfNodes);
+        for (int oneNode : treeMap.keySet()) {
+            if (connections.get(oneNode).size() == 2) {
+                possibleSockets.add(oneNode);
+            }
+        }
+
+        return new Data(numberOfNodes, numberOfConnections, treeMap, possibleSockets);
     }
 
     public DataBuilder setNumberOfNodes(int numberOfNodes) {
@@ -63,7 +85,7 @@ class DataBuilder {
         return this;
     }
 
-    private void addOneConnection(int node1, int node2){
+    private void addOneConnection(int node1, int node2) {
         if (connections.containsKey(node1)) {
             connections.get(node1).add(node2);
         } else {
@@ -73,7 +95,7 @@ class DataBuilder {
         }
     }
 
-    public DataBuilder addConnection(int node1, int node2 ){
+    public DataBuilder addConnection(int node1, int node2) {
         addOneConnection(node1, node2);
         addOneConnection(node2, node1);
 

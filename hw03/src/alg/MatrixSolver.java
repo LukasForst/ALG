@@ -1,8 +1,7 @@
 package alg;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Parameter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MatrixSolver {
     private Data data;
@@ -43,15 +42,15 @@ public class MatrixSolver {
         int leftSize = 0;
         int rightSize = 0;
 
-        Queue<Pair> leftExplored = new ArrayDeque<>();
-        Queue<Pair> rightExplored = new ArrayDeque<>();
+        Collection<Pair> leftExplored = new ArrayList<>(1);
+        Collection<Pair> rightExplored = new ArrayList<>(1);
 
         leftExplored.add(new Pair(array[0], node));
         rightExplored.add(new Pair(array[1], node));
 
         while (leftSize == rightSize) {
-            Queue<Pair> nextDepthRight = oneDepthExplore(rightExplored);
-            Queue<Pair> nextDepthLeft = oneDepthExplore(leftExplored);
+            Collection<Pair> nextDepthRight = oneDepthExplore(rightExplored);
+            Collection<Pair> nextDepthLeft = oneDepthExplore(leftExplored);
 
             rightExplored = nextDepthRight;
             leftExplored = nextDepthLeft;
@@ -71,8 +70,8 @@ public class MatrixSolver {
         return rightSize == 0 && leftSize == 0;
     }
 
-    private void checkIfSocket(Queue<Pair> leftExplored, Queue<Pair> rightExplored) {
-        ArrayList<Pair> ex = new ArrayList<>(rightExplored.size() + 10);
+    private void checkIfSocket(Collection<Pair> leftExplored, Collection<Pair> rightExplored) {
+        Collection<Pair> ex = new ArrayList<>(rightExplored.size() + 10);
         ex.addAll(rightExplored);
 
         for (Pair explored : ex) {
@@ -85,20 +84,17 @@ public class MatrixSolver {
         }
     }
 
-    private Queue<Pair> oneDepthExplore(Queue<Pair> toBeExplored) {
-        Queue<Pair> toBeFilled = new ArrayDeque<>();
-        Pair pair = toBeExplored.poll();
-        while (pair != null) {
+    private Collection<Pair> oneDepthExplore(Collection<Pair> toBeExplored) {
+        Collection<Pair> toBeFilled = new ArrayList<>(toBeExplored.size() * 100);
+        for(Pair pair : toBeExplored){
             exploreChildren(pair, toBeFilled);
-            pair = toBeExplored.poll();
         }
         return toBeFilled;
     }
 
 
-    private void exploreChildren(Pair node, Queue<Pair> outOneDepthExplored) {
-        List<Integer> children = connections.get(node.getValue());
-
+    private void exploreChildren(Pair node, Collection<Pair> outOneDepthExplored) {
+        Collection<Integer> children = connections.get(node.getValue());
         for (int child : children) {
             if (child != node.getParent()) {
                 Pair pair = new Pair(child, node.getValue());

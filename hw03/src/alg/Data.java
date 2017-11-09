@@ -5,10 +5,10 @@ import java.util.*;
 public class Data {
     private final int numberOfNodes;
     private final int numberOfConnections;
-    private final Map<Integer, Set<Integer>> connections;
+    private final Map<Integer, List<Integer>> connections;
     private final List<Integer> possibleSockets;
 
-    public Data(int numberOfNodes, int numberOfConnections, Map<Integer, Set<Integer>> connections, List<Integer> possibleSockets) {
+    public Data(int numberOfNodes, int numberOfConnections, Map<Integer, List<Integer>> connections, List<Integer> possibleSockets) {
         this.numberOfNodes = numberOfNodes;
         this.numberOfConnections = numberOfConnections;
         this.connections = connections;
@@ -23,7 +23,7 @@ public class Data {
         return numberOfConnections;
     }
 
-    public Map<Integer, Set<Integer>> getConnections() {
+    public Map<Integer, List<Integer>> getConnections() {
         return connections;
     }
 
@@ -58,25 +58,24 @@ public class Data {
 
 class DataBuilder {
     private int numberOfNodes;
-    private int numberOfConnections;
-    private Map<Integer, Set<Integer>> connections = new LinkedHashMap<>();
-
+    private int numberOfConnections = -1;
+    private Map<Integer, List<Integer>> connections = new LinkedHashMap<>();
+    private Set<Integer> possibleSockets = new HashSet<>();
     public Data build() {
-        TreeMap<Integer, Set<Integer>> treeMap = new TreeMap<>();
-        treeMap.putAll(connections);
-
         List<Integer> possibleSockets = new ArrayList<>(numberOfNodes);
-        for (int oneNode : treeMap.keySet()) {
-            if (connections.get(oneNode).size() == 2) {
-                possibleSockets.add(oneNode);
-            }
-        }
+        possibleSockets.addAll(this.possibleSockets);
 
-        return new Data(numberOfNodes, numberOfConnections, treeMap, possibleSockets);
+        return new Data(numberOfNodes, numberOfConnections, connections, possibleSockets);
     }
 
     public DataBuilder setNumberOfNodes(int numberOfNodes) {
         this.numberOfNodes = numberOfNodes;
+        possibleSockets = new HashSet<>(numberOfNodes);
+        int averageConnections = numberOfConnections / numberOfNodes;
+        for(int i = 1; i < numberOfNodes + 1; i++){
+            connections.put(i, new ArrayList<>(averageConnections));
+        }
+
         return this;
     }
 
@@ -86,12 +85,12 @@ class DataBuilder {
     }
 
     private void addOneConnection(int node1, int node2) {
-        if (connections.containsKey(node1)) {
-            connections.get(node1).add(node2);
-        } else {
-            Set<Integer> set = new HashSet<>();
-            set.add(node2);
-            connections.put(node1, set);
+        List<Integer> list = connections.get(node1);
+        list.add(node2);
+        if(list.size() == 2){
+            possibleSockets.add(node1);
+        } else{
+            possibleSockets.remove((Integer) node1);
         }
     }
 

@@ -5,7 +5,7 @@ import java.util.*;
 
 public class MatrixSolver {
     private Data data;
-    private final Map<Integer, Set<Integer>> connections;
+    private final Map<Integer, List<Integer>> connections;
     private final List<Integer> possibleSockets;
 
     private final List<Integer> sockets;
@@ -89,7 +89,7 @@ public class MatrixSolver {
 
 
     private void exploreChildren(Pair node, Queue<Pair> outOneDepthExplored) {
-        Set<Integer> children = connections.get(node.getValue());
+        List<Integer> children = connections.get(node.getValue());
 
         for (int child : children) {
             if (child != node.getParent()) {

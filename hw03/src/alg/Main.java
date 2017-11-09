@@ -27,6 +27,6 @@ public class Main {
         System.out.println();
         long endTime   = System.currentTimeMillis();
         long totalTime = endTime - startTime;
-//        System.out.println("Execution time: " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
+        System.out.println("Execution time: " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
     }
 }

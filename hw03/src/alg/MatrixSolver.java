@@ -28,7 +28,6 @@ public class MatrixSolver {
             }
         }
 
-
         Collections.sort(sockets);
         return sockets;
     }
@@ -40,38 +39,16 @@ public class MatrixSolver {
             array[i++] = root;
         }
 
-        int leftSize;
-        int rightSize;
+        int leftSize = 0;
+        int rightSize = 0;
 
         Queue<Pair> leftExplored = new ArrayDeque<>();
         Queue<Pair> rightExplored = new ArrayDeque<>();
 
-        for (int child : connections.get(array[0])) {
-            if (child != node) {
-                leftExplored.add(new Pair(child, 1, array[0]));
-            }
-        }
+        leftExplored.add(new Pair(array[0], 0, node));
+        rightExplored.add(new Pair(array[1], 0, node));
 
-        for (int child : connections.get(array[1])) {
-            if (child != node) {
-                rightExplored.add(new Pair(child, 1, array[1]));
-            }
-        }
-
-        leftSize = leftExplored.size();
-        rightSize = rightExplored.size();
-
-        List<Pair> toBeRemoved = new LinkedList<>();
-        for (Pair explored : rightExplored) {
-            if (leftExplored.contains(explored) && connections.get(explored.getValue()).size() == 2) {
-                sockets.add(explored.getValue());
-                toBeRemoved.add(explored);
-            }
-        }
-        rightExplored.removeAll(toBeRemoved);
-        leftExplored.removeAll(toBeRemoved);
-
-        toBeRemoved.clear();
+        List<Pair> toBeRemoved = new ArrayList<>();
         while (leftSize == rightSize) {
             Queue<Pair> nextDepthRight = oneDepthExplore(rightExplored);
             Queue<Pair> nextDepthLeft = oneDepthExplore(leftExplored);
@@ -148,12 +125,7 @@ class Pair {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Pair pair = (Pair) o;
-
-        return value == pair.value;
+        return value == ((Pair) o).value;
     }
 
     @Override

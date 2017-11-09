@@ -1,6 +1,6 @@
 package alg;
 
-import java.nio.channels.Pipe;
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class MatrixSolver {
@@ -8,11 +8,7 @@ public class MatrixSolver {
     private final Map<Integer, Set<Integer>> connections;
     private final List<Integer> possibleSockets;
 
-    private final Map<Integer, Pair> visited;
     private final List<Integer> sockets;
-    private final Queue<Pair> toVisit;
-
-    private boolean hasSolution = false;
 
     public MatrixSolver(Data data) {
         this.data = data;
@@ -20,23 +16,15 @@ public class MatrixSolver {
         possibleSockets = data.getPossibleSockets();
 
         int initialCapacity = data.getNumberOfNodes() / 2;
-        visited = new HashMap<>(data.getNumberOfNodes());
         sockets = new ArrayList<>(initialCapacity);
-        toVisit = new ArrayDeque<>(initialCapacity);
     }
 
     public List<Integer> solve() {
         for (int node : possibleSockets) {
-            sockets.add(node);
-            initialValue = node;
-            int array[] = connections.get(node).stream().mapToInt(Integer::valueOf).toArray();
-            toVisit.add(new Pair(array[0], 0, Direction.LEFT));
-            toVisit.add(new Pair(array[1], 0, Direction.RIGHT));
-            visited.put(node, new Pair(node, 0, Direction.INITIAL));
-            if (recursiveSolve(toVisit.poll()) == RecursiveStatus.SOLVED) {
-                if (sockets.size() > 1) {
-                    break;
-                }
+            if (exploreFrom(node)) {
+                break;
+            } else {
+                sockets.clear();
             }
         }
 
@@ -45,57 +33,109 @@ public class MatrixSolver {
         return sockets;
     }
 
-    private int initialValue = -1;
-    private RecursiveStatus recursiveSolve(Pair initialNode) {
-        if (initialNode == null) {
-            return RecursiveStatus.SOLVED;
+    private boolean exploreFrom(int node) {
+        int[] array = new int[2];
+        int i = 0;
+        for (int root : connections.get(node)) {
+            array[i++] = root;
         }
 
-        if (visited.containsKey(initialNode.getValue()) && initialNode.getValue() != initialValue) {
-            Pair alreadyVisitedPair = visited.get(initialNode.getValue());
-            if (alreadyVisitedPair.getDirection() != initialNode.getDirection()
-                    && alreadyVisitedPair.getDepth() == initialNode.getDepth()) {
-                sockets.add(initialNode.getValue());
-                return recursiveSolve(toVisit.poll());
-            } else {
-                visited.clear();
-                toVisit.clear();
-                sockets.clear();
-                return RecursiveStatus.WRONG_NODE;
+        int leftSize;
+        int rightSize;
+
+        Queue<Pair> leftExplored = new ArrayDeque<>();
+        Queue<Pair> rightExplored = new ArrayDeque<>();
+
+        for (int child : connections.get(array[0])) {
+            if (child != node) {
+                leftExplored.add(new Pair(child, 1, array[0]));
             }
-        } else {
-            visited.put(initialNode.getValue(), initialNode);
         }
 
-        for (int nodeValue : connections.get(initialNode.getValue())) {
-
+        for (int child : connections.get(array[1])) {
+            if (child != node) {
+                rightExplored.add(new Pair(child, 1, array[1]));
+            }
         }
 
-        return recursiveSolve(toVisit.poll());
+        leftSize = leftExplored.size();
+        rightSize = rightExplored.size();
+
+        List<Pair> toBeRemoved = new LinkedList<>();
+        for (Pair explored : rightExplored) {
+            if (leftExplored.contains(explored) && connections.get(explored.getValue()).size() == 2) {
+                sockets.add(explored.getValue());
+                toBeRemoved.add(explored);
+            }
+        }
+        rightExplored.removeAll(toBeRemoved);
+        leftExplored.removeAll(toBeRemoved);
+
+        toBeRemoved.clear();
+        while (leftSize == rightSize) {
+            Queue<Pair> nextDepthRight = oneDepthExplore(rightExplored);
+            Queue<Pair> nextDepthLeft = oneDepthExplore(leftExplored);
+
+            rightExplored = nextDepthRight;
+            leftExplored = nextDepthLeft;
+
+            rightSize = rightExplored.size();
+            leftSize = leftExplored.size();
+
+            for (Pair explored : rightExplored) {
+                if (leftExplored.contains(explored) && connections.get(explored.getValue()).size() == 2) {
+                    sockets.add(explored.getValue());
+                    toBeRemoved.add(explored);
+                }
+            }
+            rightExplored.removeAll(toBeRemoved);
+            leftExplored.removeAll(toBeRemoved);
+
+            toBeRemoved.clear();
+            if (leftSize == 0 || rightSize == 0) {
+                break;
+            }
+        }
+        sockets.add(node);
+        return rightSize == 0 && leftSize == 0;
     }
 
-    private enum RecursiveStatus {
-        WRONG_NODE, SOLVED, NEXT_NODE
+    private Queue<Pair> oneDepthExplore(Queue<Pair> toBeExplored) {
+        Queue<Pair> toBeFilled = new ArrayDeque<>();
+        Pair pair = toBeExplored.poll();
+        while (pair != null) {
+            exploreChildren(pair, toBeFilled);
+            pair = toBeExplored.poll();
+        }
+        return toBeFilled;
     }
-}
 
-enum Direction {
-    LEFT, RIGHT, INITIAL
+
+    private void exploreChildren(Pair node, Queue<Pair> outOneDepthExplored) {
+        Set<Integer> children = connections.get(node.getValue());
+
+        for (int child : children) {
+            if (child != node.getParent()) {
+                Pair pair = new Pair(child, node.getDepth() + 1, node.getValue());
+                outOneDepthExplored.add(pair);
+            }
+        }
+    }
 }
 
 class Pair {
     private final int value;
     private final int depth;
-    private final Direction direction;
+    private final int parent;
 
-    public Pair(int value, int depth, Direction direction) {
+    public Pair(int value, int depth, int parent) {
         this.value = value;
         this.depth = depth;
-        this.direction = direction;
+        this.parent = parent;
     }
 
-    public Direction getDirection() {
-        return direction;
+    public int getParent() {
+        return parent;
     }
 
     public int getValue() {
@@ -113,16 +153,11 @@ class Pair {
 
         Pair pair = (Pair) o;
 
-        if (value != pair.value) return false;
-        if (depth != pair.depth) return false;
-        return direction == pair.direction;
+        return value == pair.value;
     }
 
     @Override
     public int hashCode() {
-        int result = value;
-        result = 31 * result + depth;
-        result = 31 * result + (direction != null ? direction.hashCode() : 0);
-        return result;
+        return value;
     }
 }

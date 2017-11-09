@@ -6,12 +6,10 @@ import java.util.concurrent.TimeUnit;
 
 public class Main {
     public static void main(String[] args) {
-        MatrixReader reader = new MatrixReader();
-
-        Data result = reader.readData();
-
-        MatrixSolver solver = new MatrixSolver(result);
         long startTime = System.currentTimeMillis();
+        MatrixReader reader = new MatrixReader();
+        Data result = reader.readData();
+        MatrixSolver solver = new MatrixSolver(result);
         List<Integer> solved = solver.solve();
 //        solved = solver.solve();
 //        solved = solver.solve();

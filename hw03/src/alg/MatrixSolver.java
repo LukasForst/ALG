@@ -1,6 +1,7 @@
 package alg;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Parameter;
 import java.util.*;
 
 public class MatrixSolver {
@@ -31,7 +32,6 @@ public class MatrixSolver {
         Collections.sort(sockets);
         return sockets;
     }
-
     private boolean exploreFrom(int node) {
         int[] array = new int[2];
         int i = 0;
@@ -48,7 +48,6 @@ public class MatrixSolver {
         leftExplored.add(new Pair(array[0], 0, node));
         rightExplored.add(new Pair(array[1], 0, node));
 
-        List<Pair> toBeRemoved = new ArrayList<>();
         while (leftSize == rightSize) {
             Queue<Pair> nextDepthRight = oneDepthExplore(rightExplored);
             Queue<Pair> nextDepthLeft = oneDepthExplore(leftExplored);
@@ -59,22 +58,38 @@ public class MatrixSolver {
             rightSize = rightExplored.size();
             leftSize = leftExplored.size();
 
-            for (Pair explored : rightExplored) {
-                if (leftExplored.contains(explored) && connections.get(explored.getValue()).size() == 2) {
-                    sockets.add(explored.getValue());
-                    toBeRemoved.add(explored);
-                }
+            if (rightSize == leftSize) {
+                checkIfSocket(leftExplored, rightExplored);
             }
-            rightExplored.removeAll(toBeRemoved);
-            leftExplored.removeAll(toBeRemoved);
 
-            toBeRemoved.clear();
             if (leftSize == 0 || rightSize == 0) {
                 break;
             }
         }
         sockets.add(node);
         return rightSize == 0 && leftSize == 0;
+    }
+
+//    private List<Pair> fastList = new ArrayList<>();
+    private void checkIfSocket(Queue<Pair> leftExplored, Queue<Pair> rightExplored) {
+        ArrayList<Pair> ex = new ArrayList<>(rightExplored.size() + 10);
+        ex.addAll(rightExplored);
+
+        for (Pair explored : ex) {
+            int value = explored.getValue();
+            if (leftExplored.contains(explored) && connections.get(value).size() == 2) {
+                sockets.add(value);
+                rightExplored.remove(explored);
+                leftExplored.remove(explored);
+            }
+        }
+
+//        for (Pair remove : fastList) {
+//            rightExplored.remove(remove);
+//            leftExplored.remove(remove);
+//        }
+//
+//        fastList.clear();
     }
 
     private Queue<Pair> oneDepthExplore(Queue<Pair> toBeExplored) {

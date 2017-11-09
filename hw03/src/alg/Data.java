@@ -60,22 +60,21 @@ class DataBuilder {
     private int numberOfNodes;
     private int numberOfConnections = -1;
     private Map<Integer, List<Integer>> connections = new LinkedHashMap<>();
-    private Set<Integer> possibleSockets = new HashSet<>();
     public Data build() {
         List<Integer> possibleSockets = new ArrayList<>(numberOfNodes);
-        possibleSockets.addAll(this.possibleSockets);
-
+        for(int key : connections.keySet()){
+            if (connections.get(key).size() != 2) {
+                continue;
+            } else {
+                possibleSockets.add(key);
+            }
+        }
+        Collections.sort(possibleSockets);
         return new Data(numberOfNodes, numberOfConnections, connections, possibleSockets);
     }
 
     public DataBuilder setNumberOfNodes(int numberOfNodes) {
         this.numberOfNodes = numberOfNodes;
-        possibleSockets = new HashSet<>(numberOfNodes);
-        int averageConnections = numberOfConnections / numberOfNodes;
-        for(int i = 1; i < numberOfNodes + 1; i++){
-            connections.put(i, new ArrayList<>(averageConnections));
-        }
-
         return this;
     }
 
@@ -84,20 +83,8 @@ class DataBuilder {
         return this;
     }
 
-    private void addOneConnection(int node1, int node2) {
-        List<Integer> list = connections.get(node1);
-        list.add(node2);
-        if(list.size() == 2){
-            possibleSockets.add(node1);
-        } else{
-            possibleSockets.remove((Integer) node1);
-        }
-    }
-
-    public DataBuilder addConnection(int node1, int node2) {
-        addOneConnection(node1, node2);
-        addOneConnection(node2, node1);
-
+    public DataBuilder addConnection(Map<Integer, List<Integer>> connections) {
+        this.connections = connections;
         return this;
     }
 }

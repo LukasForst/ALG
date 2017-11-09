@@ -28,14 +28,16 @@ public class MatrixSolver {
     public List<Integer> solve() {
         for (int node : possibleSockets) {
             sockets.add(node);
+            initialValue = node;
             int array[] = connections.get(node).stream().mapToInt(Integer::valueOf).toArray();
             toVisit.add(new Pair(array[0], 0, Direction.LEFT));
             toVisit.add(new Pair(array[1], 0, Direction.RIGHT));
-            if(recursiveSolve(toVisit.poll()) == RecursiveStatus.SOLVED)
-                break;
-
-            toVisit.clear();
-            sockets.clear();
+            visited.put(node, new Pair(node, 0, Direction.INITIAL));
+            if (recursiveSolve(toVisit.poll()) == RecursiveStatus.SOLVED) {
+                if (sockets.size() > 1) {
+                    break;
+                }
+            }
         }
 
 
@@ -43,13 +45,22 @@ public class MatrixSolver {
         return sockets;
     }
 
+    private int initialValue = -1;
     private RecursiveStatus recursiveSolve(Pair initialNode) {
-        if (visited.containsKey(initialNode.getValue())) {
-            Pair contained = visited.get(initialNode.getValue());
-            if(contained.getDepth() == initialNode.getDepth() && contained.getDirection() != initialNode.getDirection()){
+        if (initialNode == null) {
+            return RecursiveStatus.SOLVED;
+        }
+
+        if (visited.containsKey(initialNode.getValue()) && initialNode.getValue() != initialValue) {
+            Pair alreadyVisitedPair = visited.get(initialNode.getValue());
+            if (alreadyVisitedPair.getDirection() != initialNode.getDirection()
+                    && alreadyVisitedPair.getDepth() == initialNode.getDepth()) {
                 sockets.add(initialNode.getValue());
-                recursiveSolve(toVisit.poll());
-            } else{
+                return recursiveSolve(toVisit.poll());
+            } else {
+                visited.clear();
+                toVisit.clear();
+                sockets.clear();
                 return RecursiveStatus.WRONG_NODE;
             }
         } else {
@@ -57,16 +68,10 @@ public class MatrixSolver {
         }
 
         for (int nodeValue : connections.get(initialNode.getValue())) {
-            if (!toVisit.contains(new Pair(nodeValue, initialNode.getDepth() - 1, initialNode.getDirection()))) {
-                toVisit.add(new Pair(nodeValue, initialNode.getDepth() + 1, initialNode.getDirection()));
-            }
+
         }
 
-        if (toVisit.peek() == null) {
-            return RecursiveStatus.SOLVED;
-        } else {
-            return recursiveSolve(toVisit.poll());
-        }
+        return recursiveSolve(toVisit.poll());
     }
 
     private enum RecursiveStatus {
@@ -75,12 +80,7 @@ public class MatrixSolver {
 }
 
 enum Direction {
-    LEFT, RIGHT;
-
-    public static Direction getOposite(Direction direction) {
-        if (direction == RIGHT) return LEFT;
-        else return RIGHT;
-    }
+    LEFT, RIGHT, INITIAL
 }
 
 class Pair {

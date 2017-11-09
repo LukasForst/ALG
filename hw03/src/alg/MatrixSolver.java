@@ -32,6 +32,7 @@ public class MatrixSolver {
         Collections.sort(sockets);
         return sockets;
     }
+
     private boolean exploreFrom(int node) {
         int[] array = new int[2];
         int i = 0;
@@ -45,8 +46,8 @@ public class MatrixSolver {
         Queue<Pair> leftExplored = new ArrayDeque<>();
         Queue<Pair> rightExplored = new ArrayDeque<>();
 
-        leftExplored.add(new Pair(array[0], 0, node));
-        rightExplored.add(new Pair(array[1], 0, node));
+        leftExplored.add(new Pair(array[0], node));
+        rightExplored.add(new Pair(array[1], node));
 
         while (leftSize == rightSize) {
             Queue<Pair> nextDepthRight = oneDepthExplore(rightExplored);
@@ -70,7 +71,6 @@ public class MatrixSolver {
         return rightSize == 0 && leftSize == 0;
     }
 
-//    private List<Pair> fastList = new ArrayList<>();
     private void checkIfSocket(Queue<Pair> leftExplored, Queue<Pair> rightExplored) {
         ArrayList<Pair> ex = new ArrayList<>(rightExplored.size() + 10);
         ex.addAll(rightExplored);
@@ -83,13 +83,6 @@ public class MatrixSolver {
                 leftExplored.remove(explored);
             }
         }
-
-//        for (Pair remove : fastList) {
-//            rightExplored.remove(remove);
-//            leftExplored.remove(remove);
-//        }
-//
-//        fastList.clear();
     }
 
     private Queue<Pair> oneDepthExplore(Queue<Pair> toBeExplored) {
@@ -108,7 +101,7 @@ public class MatrixSolver {
 
         for (int child : children) {
             if (child != node.getParent()) {
-                Pair pair = new Pair(child, node.getDepth() + 1, node.getValue());
+                Pair pair = new Pair(child, node.getValue());
                 outOneDepthExplored.add(pair);
             }
         }
@@ -117,12 +110,10 @@ public class MatrixSolver {
 
 class Pair {
     private final int value;
-    private final int depth;
     private final int parent;
 
-    public Pair(int value, int depth, int parent) {
+    public Pair(int value, int parent) {
         this.value = value;
-        this.depth = depth;
         this.parent = parent;
     }
 
@@ -132,10 +123,6 @@ class Pair {
 
     public int getValue() {
         return value;
-    }
-
-    public int getDepth() {
-        return depth;
     }
 
     @Override

@@ -85,7 +85,7 @@ public class MatrixSolver {
     }
 
     private Collection<Pair> oneDepthExplore(Collection<Pair> toBeExplored) {
-        Collection<Pair> toBeFilled = new ArrayList<>(toBeExplored.size() * 100);
+        Collection<Pair> toBeFilled = new HashSet<>(toBeExplored.size() * 100);
         for(Pair pair : toBeExplored){
             exploreChildren(pair, toBeFilled);
         }

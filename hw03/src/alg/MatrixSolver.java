@@ -1,7 +1,6 @@
 package alg;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class MatrixSolver {
     private Data data;
@@ -9,7 +8,7 @@ public class MatrixSolver {
     private final List<Integer> possibleSockets;
 
     private final List<Integer> sockets;
-
+    private int[] parentOf;
     public MatrixSolver(Data data) {
         this.data = data;
         connections = data.getConnections();
@@ -17,6 +16,7 @@ public class MatrixSolver {
 
         int initialCapacity = data.getNumberOfNodes() / 2;
         sockets = new ArrayList<>(initialCapacity);
+        parentOf = new int[data.getNumberOfNodes() + 1];
     }
 
     public List<Integer> solve() {
@@ -42,15 +42,18 @@ public class MatrixSolver {
         int leftSize = 0;
         int rightSize = 0;
 
-        Collection<Pair> leftExplored = new ArrayList<>(1);
-        Collection<Pair> rightExplored = new ArrayList<>(1);
+        Collection<Integer> leftExplored = new ArrayList<>();
+        Collection<Integer> rightExplored = new ArrayList<>();
 
-        leftExplored.add(new Pair(array[0], node));
-        rightExplored.add(new Pair(array[1], node));
+        leftExplored.add(array[0]);
+        rightExplored.add(array[1]);
+
+        parentOf[array[0]] = node;
+        parentOf[array[1]] = node;
 
         while (leftSize == rightSize) {
-            Collection<Pair> nextDepthRight = oneDepthExplore(rightExplored);
-            Collection<Pair> nextDepthLeft = oneDepthExplore(leftExplored);
+            Collection<Integer> nextDepthRight = oneDepthExplore(rightExplored);
+            Collection<Integer> nextDepthLeft = oneDepthExplore(leftExplored);
 
             rightExplored = nextDepthRight;
             leftExplored = nextDepthLeft;
@@ -69,65 +72,35 @@ public class MatrixSolver {
         sockets.add(node);
         return rightSize == 0 && leftSize == 0;
     }
-
-    private void checkIfSocket(Collection<Pair> leftExplored, Collection<Pair> rightExplored) {
-        Collection<Pair> ex = new ArrayList<>(rightExplored.size() + 10);
+    private void checkIfSocket(Collection<Integer> leftExplored, Collection<Integer> rightExplored) {
+        Collection<Integer> ex = new ArrayList<>(rightExplored.size() + 10);
         ex.addAll(rightExplored);
 
-        for (Pair explored : ex) {
-            int value = explored.getValue();
-            if (leftExplored.contains(explored) && connections.get(value).size() == 2) {
-                sockets.add(value);
+        for (int explored : ex) {
+            if (leftExplored.contains(explored) && connections.get(explored).size() == 2) {
+                sockets.add(explored);
                 rightExplored.remove(explored);
                 leftExplored.remove(explored);
             }
         }
     }
 
-    private Collection<Pair> oneDepthExplore(Collection<Pair> toBeExplored) {
-        Collection<Pair> toBeFilled = new HashSet<>(toBeExplored.size() * 100);
-        for(Pair pair : toBeExplored){
+    private Collection<Integer> oneDepthExplore(Collection<Integer> toBeExplored) {
+        Collection<Integer> toBeFilled = new HashSet<>();
+        for(int pair : toBeExplored){
             exploreChildren(pair, toBeFilled);
         }
         return toBeFilled;
     }
 
-
-    private void exploreChildren(Pair node, Collection<Pair> outOneDepthExplored) {
-        Collection<Integer> children = connections.get(node.getValue());
+    private void exploreChildren(int node, Collection<Integer> outOneDepthExplored) {
+        Collection<Integer> children = connections.get(node);
+        int par = parentOf[node];
         for (int child : children) {
-            if (child != node.getParent()) {
-                Pair pair = new Pair(child, node.getValue());
-                outOneDepthExplored.add(pair);
+            if (child != par) {
+                parentOf[child] = node;
+                outOneDepthExplored.add(child);
             }
         }
-    }
-}
-
-class Pair {
-    private final int value;
-    private final int parent;
-
-    public Pair(int value, int parent) {
-        this.value = value;
-        this.parent = parent;
-    }
-
-    public int getParent() {
-        return parent;
-    }
-
-    public int getValue() {
-        return value;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return value == ((Pair) o).value;
-    }
-
-    @Override
-    public int hashCode() {
-        return value;
     }
 }

@@ -1,6 +1,9 @@
 package alg;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.TreeSet;
 
 public class MatrixSolver {
     private final Map<Integer, Collection<Integer>> connections;
@@ -84,7 +87,7 @@ public class MatrixSolver {
     }
 
     private Collection<Integer> oneDepthExplore(Collection<Integer> toBeExplored) {
-        Collection<Integer> toBeFilled = new HashSet<>();
+        Collection<Integer> toBeFilled = new TreeSet<>();
         for (int pair : toBeExplored) {
             exploreChildren(pair, toBeFilled);
         }

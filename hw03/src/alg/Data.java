@@ -1,6 +1,8 @@
 package alg;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.TreeSet;
 
 public class Data {
     private final int numberOfNodes;
@@ -59,17 +61,17 @@ public class Data {
 class DataBuilder {
     private int numberOfNodes;
     private int numberOfConnections = -1;
-    private Map<Integer, Collection<Integer>> connections = new LinkedHashMap<>();
+    private Map<Integer, Collection<Integer>> connections;
+
     public Data build() {
         Collection<Integer> possibleSockets = new TreeSet<>();
-        for(int key : connections.keySet()){
-            if (connections.get(key).size() != 2) {
-                continue;
-            } else {
+        for (int key : connections.keySet()) {
+            if (connections.get(key).size() == 2) {
                 possibleSockets.add(key);
+
             }
         }
-//        Collections.sort(possibleSockets);
+
         return new Data(numberOfNodes, numberOfConnections, connections, possibleSockets);
     }
 

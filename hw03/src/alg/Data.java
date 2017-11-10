@@ -5,10 +5,10 @@ import java.util.*;
 public class Data {
     private final int numberOfNodes;
     private final int numberOfConnections;
-    private final Map<Integer, List<Integer>> connections;
-    private final List<Integer> possibleSockets;
+    private final Map<Integer, Collection<Integer>> connections;
+    private final Collection<Integer> possibleSockets;
 
-    public Data(int numberOfNodes, int numberOfConnections, Map<Integer, List<Integer>> connections, List<Integer> possibleSockets) {
+    public Data(int numberOfNodes, int numberOfConnections, Map<Integer, Collection<Integer>> connections, Collection<Integer> possibleSockets) {
         this.numberOfNodes = numberOfNodes;
         this.numberOfConnections = numberOfConnections;
         this.connections = connections;
@@ -23,11 +23,11 @@ public class Data {
         return numberOfConnections;
     }
 
-    public Map<Integer, List<Integer>> getConnections() {
+    public Map<Integer, Collection<Integer>> getConnections() {
         return connections;
     }
 
-    public List<Integer> getPossibleSockets() {
+    public Collection<Integer> getPossibleSockets() {
         return possibleSockets;
     }
 
@@ -59,9 +59,9 @@ public class Data {
 class DataBuilder {
     private int numberOfNodes;
     private int numberOfConnections = -1;
-    private Map<Integer, List<Integer>> connections = new LinkedHashMap<>();
+    private Map<Integer, Collection<Integer>> connections = new LinkedHashMap<>();
     public Data build() {
-        List<Integer> possibleSockets = new ArrayList<>(numberOfNodes);
+        Collection<Integer> possibleSockets = new TreeSet<>();
         for(int key : connections.keySet()){
             if (connections.get(key).size() != 2) {
                 continue;
@@ -69,7 +69,7 @@ class DataBuilder {
                 possibleSockets.add(key);
             }
         }
-        Collections.sort(possibleSockets);
+//        Collections.sort(possibleSockets);
         return new Data(numberOfNodes, numberOfConnections, connections, possibleSockets);
     }
 
@@ -83,7 +83,7 @@ class DataBuilder {
         return this;
     }
 
-    public DataBuilder addConnection(Map<Integer, List<Integer>> connections) {
+    public DataBuilder addConnection(Map<Integer, Collection<Integer>> connections) {
         this.connections = connections;
         return this;
     }

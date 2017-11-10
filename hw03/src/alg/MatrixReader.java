@@ -13,21 +13,21 @@ public class MatrixReader {
         DataBuilder db = new DataBuilder();
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
             String[] firstLine = reader.readLine().split(" ");
-//            long startTime = System.currentTimeMillis();
+            long startTime = System.currentTimeMillis();
 
             int numberOfNodes = Integer.parseInt(firstLine[0]);
             int numberOfConnections = Integer.parseInt(firstLine[1]);
             db.setnumberOfConnections(numberOfConnections).setNumberOfNodes(numberOfNodes);
-//            long readingAndAddingConnectgions = System.currentTimeMillis();
+            long readingAndAddingConnectgions = System.currentTimeMillis();
 
-            Map<Integer, List<Integer>> connections = new LinkedHashMap<>();
+            Map<Integer, Collection<Integer>> connections = new LinkedHashMap<>();
             for (int i = 0; i < numberOfConnections; i++) {
                 String[] line = reader.readLine().split(" ");
 
                 int node = Integer.parseInt(line[0]);
                 int node2 = Integer.parseInt(line[1]);
 
-                List<Integer> list = connections.get(node);
+                Collection<Integer> list = connections.get(node);
                 if(list != null){
                     list.add(node2);
                 } else {
@@ -47,17 +47,17 @@ public class MatrixReader {
             }
             db.addConnection(connections);
 
-//            long totalAddingConnection = System.currentTimeMillis() - readingAndAddingConnectgions;
-//            System.out.println("Total adding connections " + TimeUnit.MILLISECONDS.toSeconds(totalAddingConnection) + "s = " + totalAddingConnection + "ms");
-////
-//            long buildingStartTime = System.currentTimeMillis();
-            Data d = db.build();
-//            long buildingTotalTime = System.currentTimeMillis() - buildingStartTime;
-//            System.out.println("Total building " + TimeUnit.MILLISECONDS.toSeconds(buildingTotalTime) + "s = " + buildingTotalTime + "ms");
+            long totalAddingConnection = System.currentTimeMillis() - readingAndAddingConnectgions;
+            System.out.println("Total adding connections " + TimeUnit.MILLISECONDS.toSeconds(totalAddingConnection) + "s = " + totalAddingConnection + "ms");
 //
-//            long endTime   = System.currentTimeMillis();
-//            long totalTime = endTime - startTime;
-//            System.out.println("Total reading " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
+            long buildingStartTime = System.currentTimeMillis();
+            Data d = db.build();
+            long buildingTotalTime = System.currentTimeMillis() - buildingStartTime;
+            System.out.println("Total building " + TimeUnit.MILLISECONDS.toSeconds(buildingTotalTime) + "s = " + buildingTotalTime + "ms");
+
+            long endTime   = System.currentTimeMillis();
+            long totalTime = endTime - startTime;
+            System.out.println("Total reading " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
 
             return d;
         } catch (Exception e) {

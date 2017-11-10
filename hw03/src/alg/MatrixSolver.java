@@ -3,23 +3,21 @@ package alg;
 import java.util.*;
 
 public class MatrixSolver {
-    private Data data;
-    private final Map<Integer, List<Integer>> connections;
-    private final List<Integer> possibleSockets;
+    private final Map<Integer, Collection<Integer>> connections;
+    private final Collection<Integer> possibleSockets;
 
-    private final List<Integer> sockets;
+    private final Collection<Integer> sockets;
     private int[] parentOf;
+
     public MatrixSolver(Data data) {
-        this.data = data;
         connections = data.getConnections();
         possibleSockets = data.getPossibleSockets();
 
-        int initialCapacity = data.getNumberOfNodes() / 2;
-        sockets = new ArrayList<>(initialCapacity);
+        sockets = new TreeSet<>();
         parentOf = new int[data.getNumberOfNodes() + 1];
     }
 
-    public List<Integer> solve() {
+    public Collection<Integer> solve() {
         for (int node : possibleSockets) {
             if (exploreFrom(node)) {
                 break;
@@ -28,7 +26,6 @@ public class MatrixSolver {
             }
         }
 
-        Collections.sort(sockets);
         return sockets;
     }
 
@@ -72,8 +69,9 @@ public class MatrixSolver {
         sockets.add(node);
         return rightSize == 0 && leftSize == 0;
     }
+
     private void checkIfSocket(Collection<Integer> leftExplored, Collection<Integer> rightExplored) {
-        Collection<Integer> ex = new ArrayList<>(rightExplored.size() + 10);
+        Collection<Integer> ex = new ArrayList<>(rightExplored.size() + 1);
         ex.addAll(rightExplored);
 
         for (int explored : ex) {
@@ -87,7 +85,7 @@ public class MatrixSolver {
 
     private Collection<Integer> oneDepthExplore(Collection<Integer> toBeExplored) {
         Collection<Integer> toBeFilled = new HashSet<>();
-        for(int pair : toBeExplored){
+        for (int pair : toBeExplored) {
             exploreChildren(pair, toBeFilled);
         }
         return toBeFilled;
@@ -95,9 +93,9 @@ public class MatrixSolver {
 
     private void exploreChildren(int node, Collection<Integer> outOneDepthExplored) {
         Collection<Integer> children = connections.get(node);
-        int par = parentOf[node];
+        int parent = parentOf[node];
         for (int child : children) {
-            if (child != par) {
+            if (child != parent) {
                 parentOf[child] = node;
                 outOneDepthExplored.add(child);
             }

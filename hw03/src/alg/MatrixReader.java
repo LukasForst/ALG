@@ -4,8 +4,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,9 +24,9 @@ public class MatrixReader {
 
             int averageConnections = numberOfConnections / numberOfNodes;
 
-            Map<Integer, Collection<Integer>> connections = new LinkedHashMap<>();
-            for (int i = 0; i < numberOfNodes + 1; i++) {
-                connections.put(i, new ArrayList<>(averageConnections));
+            ArrayList<Collection<Integer>> connections = new ArrayList<>(numberOfNodes + 2);
+            for (int i = 0; i < numberOfNodes + 2; i++) {
+                connections.add(new ArrayList<>(averageConnections));
             }
 
             for (int i = 0; i < numberOfConnections; i++) {

@@ -2,11 +2,10 @@ package alg;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.TreeSet;
 
 public class MatrixSolver {
-    private final Map<Integer, Collection<Integer>> connections;
+    private final ArrayList<Collection<Integer>> connections;
     private final Collection<Integer> possibleSockets;
 
     private final Collection<Integer> sockets;

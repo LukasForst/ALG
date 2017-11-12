@@ -1,26 +1,22 @@
 package alg;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
+import java.util.Iterator;
 
 public class Main {
     public static void main(String[] args) {
-        MatrixReader reader = new MatrixReader();
-
-        Data result = reader.readData();
-
-        System.out.println(result);
+        Data result = MatrixReader.readData();
         MatrixSolver solver = new MatrixSolver(result);
-        long startTime = System.currentTimeMillis();
-        List<Integer> solved = solver.solve();
-        System.out.println(Arrays.toString(solved.toArray()));
 
-        long endTime   = System.currentTimeMillis();
-        long totalTime = endTime - startTime;
-        System.out.println("Execution time: " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
+        Collection<Integer> solved = solver.solve();
+        Iterator<Integer> iterator = solved.iterator();
+        StringBuilder sb = new StringBuilder();
+        sb.append(iterator.next());
+
+        int printed = 1;
+        while (iterator.hasNext() && printed++ != 100) {
+            sb.append(" ").append(iterator.next());
+        }
+        System.out.println(sb.toString());
     }
 }

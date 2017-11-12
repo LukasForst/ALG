@@ -1,14 +1,16 @@
 package alg;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.TreeSet;
 
 public class Data {
     private final int numberOfNodes;
     private final int numberOfConnections;
-    private final Map<Integer, Set<Integer>> connections;
-    private final List<Integer> possibleSockets;
+    private final ArrayList<Collection<Integer>> connections;
+    private final Collection<Integer> possibleSockets;
 
-    public Data(int numberOfNodes, int numberOfConnections, Map<Integer, Set<Integer>> connections, List<Integer> possibleSockets) {
+    public Data(int numberOfNodes, int numberOfConnections, ArrayList<Collection<Integer>> connections, Collection<Integer> possibleSockets) {
         this.numberOfNodes = numberOfNodes;
         this.numberOfConnections = numberOfConnections;
         this.connections = connections;
@@ -23,11 +25,11 @@ public class Data {
         return numberOfConnections;
     }
 
-    public Map<Integer, Set<Integer>> getConnections() {
+    public ArrayList<Collection<Integer>> getConnections() {
         return connections;
     }
 
-    public List<Integer> getPossibleSockets() {
+    public Collection<Integer> getPossibleSockets() {
         return possibleSockets;
     }
 
@@ -36,10 +38,10 @@ public class Data {
         StringBuilder sb = new StringBuilder();
         sb.append(numberOfNodes).append(" ").append(numberOfConnections).append("\n");
 
-        for (int key : connections.keySet()) {
-            sb.append(key).append(": ");
+        for (int node = 0; node < connections.size(); node++) {
+            sb.append(node).append(": ");
 
-            for (int connected : connections.get(key)) {
+            for (int connected : connections.get(node)) {
                 sb.append(connected).append(" ");
             }
             sb.append("\n");
@@ -58,21 +60,18 @@ public class Data {
 
 class DataBuilder {
     private int numberOfNodes;
-    private int numberOfConnections;
-    private Map<Integer, Set<Integer>> connections = new LinkedHashMap<>();
+    private int numberOfConnections = -1;
+    private ArrayList<Collection<Integer>> connections;
 
     public Data build() {
-        TreeMap<Integer, Set<Integer>> treeMap = new TreeMap<>();
-        treeMap.putAll(connections);
-
-        List<Integer> possibleSockets = new ArrayList<>(numberOfNodes);
-        for (int oneNode : treeMap.keySet()) {
-            if (connections.get(oneNode).size() == 2) {
-                possibleSockets.add(oneNode);
+        Collection<Integer> possibleSockets = new TreeSet<>();
+        for (int i = 1; i < connections.size(); i++) {
+            if (connections.get(i).size() == 2) {
+                possibleSockets.add(i);
             }
         }
 
-        return new Data(numberOfNodes, numberOfConnections, treeMap, possibleSockets);
+        return new Data(numberOfNodes, numberOfConnections, connections, possibleSockets);
     }
 
     public DataBuilder setNumberOfNodes(int numberOfNodes) {
@@ -85,20 +84,8 @@ class DataBuilder {
         return this;
     }
 
-    private void addOneConnection(int node1, int node2) {
-        if (connections.containsKey(node1)) {
-            connections.get(node1).add(node2);
-        } else {
-            Set<Integer> set = new HashSet<>();
-            set.add(node2);
-            connections.put(node1, set);
-        }
-    }
-
-    public DataBuilder addConnection(int node1, int node2) {
-        addOneConnection(node1, node2);
-        addOneConnection(node2, node1);
-
+    public DataBuilder addConnection(ArrayList<Collection<Integer>> connections) {
+        this.connections = connections;
         return this;
     }
 }

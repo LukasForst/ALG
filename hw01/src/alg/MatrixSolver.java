@@ -9,37 +9,56 @@ public class MatrixSolver {
         int rows = data.length;
         int columns = data[0].length;
 
-        Triplet currentMax = new Triplet(0, 0, 0);
+        int currentMax = 0;
         for (int i = 1; i < rows; i++) {
             for (int j = 1; j < columns; j++) {
                 int numberOfSquares = getNumberOfSquares(i, j);
                 for (int s = 1; s <= numberOfSquares; s++) {
-                    Triplet finalValueTriplet = data[i][j].clone();
-                    finalValueTriplet.subtract(data[i - 1][j - 1]); //y
-                    finalValueTriplet.subtract(data[i - s][j - s]); //m
+                    int numberOfOnes = data[i][j].getNumberOfPositiveFields();
+                    int computedValue = data[i][j].getComputedValue();
 
-                    finalValueTriplet.add(data[i - 1][j - s]); //k
-                    finalValueTriplet.add(data[i - s][j - 1]); //l
+                    numberOfOnes -= data[i - 1][j - 1].getNumberOfPositiveFields();
+                    computedValue -= data[i - 1][j - 1].getComputedValue();
+
+                    numberOfOnes -= data[i - s][j - s].getNumberOfPositiveFields();
+                    computedValue -= data[i - s][j - s].getComputedValue();
+
+                    numberOfOnes += data[i - 1][j - s].getNumberOfPositiveFields();
+                    computedValue += data[i - 1][j - s].getComputedValue();
+
+                    numberOfOnes += data[i - s][j - 1].getNumberOfPositiveFields();
+                    computedValue += data[i - s][j - 1].getComputedValue();
 
                     if (j - s - 1 >= 0 && i - s - 1 >= 0) {
-                        finalValueTriplet.add(data[i - s - 1][j - s - 1]); //c
-                        finalValueTriplet.subtract(data[i][j - s - 1]); //a
-                        finalValueTriplet.subtract(data[i - s - 1][j]); //b
+
+                        numberOfOnes += data[i - s - 1][j - s - 1].getNumberOfPositiveFields();
+                        computedValue += data[i - s - 1][j - s - 1].getComputedValue();
+
+                        numberOfOnes -= data[i][j - s - 1].getNumberOfPositiveFields();
+                        computedValue -= data[i][j - s - 1].getComputedValue();
+
+                        numberOfOnes -= data[i - s - 1][j].getNumberOfPositiveFields();
+                        computedValue -= data[i - s - 1][j].getComputedValue();
+
+
                     } else {
                         if (j - s - 1 >= 0) {
-                            finalValueTriplet.subtract(data[i][j - s - 1]); //a
+                            numberOfOnes -= data[i][j - s - 1].getNumberOfPositiveFields();
+                            computedValue -= data[i][j - s - 1].getComputedValue();
+
                         }
 
                         if (i - s - 1 >= 0) {
-                            finalValueTriplet.subtract(data[i - s - 1][j]); //b
+                            numberOfOnes -= data[i - s - 1][j].getNumberOfPositiveFields();
+                            computedValue -= data[i - s - 1][j].getComputedValue();
                         }
                     }
 
-                    currentMax = Triplet.getMax(currentMax, finalValueTriplet);
+                    currentMax = computedValue >= 0 && numberOfOnes > currentMax ? numberOfOnes : currentMax;
                 }
             }
         }
-        return currentMax.getNumberOfPositiveFields();
+        return currentMax;
     }
 
     private int getNumberOfSquares(int row, int column) {

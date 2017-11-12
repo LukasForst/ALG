@@ -1,7 +1,6 @@
 package alg;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.logging.Level;
@@ -20,9 +19,9 @@ public class MatrixReader {
     public Triplet[][] read() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(System.in))) {
 
-            Pair<Integer, Integer> size = readSize(reader);
-            int rows = size.getLeft();
-            int columns = size.getRight();
+            int[] size = Arrays.stream(reader.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+            int rows = size[0];
+            int columns = size[1];
 
             Triplet[][] data = new Triplet[rows][columns];
 
@@ -60,12 +59,5 @@ public class MatrixReader {
             Logger.getGlobal().log(Level.WARNING, e.toString());
             return new Triplet[0][0];
         }
-    }
-
-    private Pair<Integer, Integer> readSize(BufferedReader reader) throws IOException {
-        String[] line = reader.readLine().split(" ");
-        int rows = Integer.parseInt(line[0]);
-        int columns = Integer.parseInt(line[1]);
-        return new Pair<>(rows, columns);
     }
 }

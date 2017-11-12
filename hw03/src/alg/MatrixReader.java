@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -14,13 +13,10 @@ public class MatrixReader {
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             String[] firstLine = reader.readLine().split(" ");
-            long startTime = System.currentTimeMillis();
 
             int numberOfNodes = Integer.parseInt(firstLine[0]);
             int numberOfConnections = Integer.parseInt(firstLine[1]);
             db.setnumberOfConnections(numberOfConnections).setNumberOfNodes(numberOfNodes);
-
-            long readingAndAddingConnectgions = System.currentTimeMillis();
 
             int averageConnections = numberOfConnections / numberOfNodes;
 
@@ -41,19 +37,7 @@ public class MatrixReader {
             }
             db.addConnection(connections);
 
-            long totalAddingConnection = System.currentTimeMillis() - readingAndAddingConnectgions;
-            System.out.println("Total adding connections " + TimeUnit.MILLISECONDS.toSeconds(totalAddingConnection) + "s = " + totalAddingConnection + "ms");
-
-            long buildingStartTime = System.currentTimeMillis();
-            Data d = db.build();
-            long buildingTotalTime = System.currentTimeMillis() - buildingStartTime;
-            System.out.println("Total building " + TimeUnit.MILLISECONDS.toSeconds(buildingTotalTime) + "s = " + buildingTotalTime + "ms");
-
-            long endTime = System.currentTimeMillis();
-            long totalTime = endTime - startTime;
-            System.out.println("Total reading " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
-
-            return d;
+            return db.build();
         } catch (Exception e) {
             Logger.getGlobal().log(Level.WARNING, e.toString());
         }

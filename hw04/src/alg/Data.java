@@ -1,18 +1,19 @@
 package alg;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class Data {
     private final int countOfAllServers;
     private final int countOfKeyServers;
 
-    private final int[][] coincidenceMatrix;
+    private final ArrayList<Collection<EdgePair>> adjacencyList;
     private final Collection<Integer> keyServers;
 
-    public Data(int countOfAllServers, int countOfKeyServers, int[][] coincidenceMatrix, Collection<Integer> keyServers) {
+    public Data(int countOfAllServers, int countOfKeyServers, ArrayList<Collection<EdgePair>> adjacencyList, Collection<Integer> keyServers) {
         this.countOfAllServers = countOfAllServers;
         this.countOfKeyServers = countOfKeyServers;
-        this.coincidenceMatrix = coincidenceMatrix;
+        this.adjacencyList = adjacencyList;
         this.keyServers = keyServers;
     }
 
@@ -24,8 +25,8 @@ public class Data {
         return countOfKeyServers;
     }
 
-    public int[][] getCoincidenceMatrix() {
-        return coincidenceMatrix;
+    public ArrayList<Collection<EdgePair>> getAdjacencyList() {
+        return adjacencyList;
     }
 
     public Collection<Integer> getKeyServers() {
@@ -35,14 +36,13 @@ public class Data {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(countOfAllServers).append(countOfKeyServers);
-        for (int i = 0; i < coincidenceMatrix.length; i++) {
-            sb.append(i);
-            for (int j = 0; j < coincidenceMatrix[i].length; i++) {
-                if (coincidenceMatrix[i][j] != 0) {
-                    sb.append(j).append(" ").append(coincidenceMatrix[i][j]).append("\n");
-                }
+        sb.append(countOfAllServers).append(" ").append(countOfKeyServers).append("\n");
+        for (int i = 0; i < adjacencyList.size(); i++) {
+            sb.append(i).append(" - ");
+            for (EdgePair edge : adjacencyList.get(i)) {
+                sb.append(" [").append(edge.getEndNode()).append(", ").append(edge.getPrice()).append("] ");
             }
+            sb.append("\n");
         }
         for (int keyServer : keyServers) {
             sb.append(keyServer).append(" ");
@@ -52,3 +52,4 @@ public class Data {
         return sb.toString();
     }
 }
+

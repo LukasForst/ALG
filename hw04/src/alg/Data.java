@@ -9,12 +9,18 @@ public class Data {
 
     private final ArrayList<Collection<EdgePair>> adjacencyList;
     private final Collection<Integer> keyServers;
+    private final int firstKeyServer;
 
     public Data(int countOfAllServers, int countOfKeyServers, ArrayList<Collection<EdgePair>> adjacencyList, Collection<Integer> keyServers) {
         this.countOfAllServers = countOfAllServers;
         this.countOfKeyServers = countOfKeyServers;
         this.adjacencyList = adjacencyList;
         this.keyServers = keyServers;
+        firstKeyServer = keyServers.iterator().next();
+    }
+
+    public int getFirstKeyServer() {
+        return firstKeyServer;
     }
 
     public int getCountOfAllServers() {

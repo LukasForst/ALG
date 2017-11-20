@@ -7,32 +7,34 @@ import java.util.TreeSet;
 
 public class MatrixSolver {
     private Data data;
-    private final ArrayList<Collection<EdgePair>> adjencyList;
+    private final ArrayList<Collection<EdgePair>> adjacencyList;
+    private final boolean[] keyServers;
 
     private int[] parentOf;
 
     public MatrixSolver(Data data) {
         this.data = data;
-        adjencyList = data.getAdjacencyList();
+        adjacencyList = data.getAdjacencyList();
 
-        parentOf = new int[adjencyList.size()];
+        parentOf = new int[adjacencyList.size()];
+        keyServers = data.getKeyServers();
     }
 
     public int solve() {
         Collection<Integer> res = findCycle();
         int finalPrice = 0;
         for (int node : res) {
-            finalPrice += getPriceOfSubTreeFrom(node, res);
+            int current = getPriceOfSubTreeFrom(node, res);
+            finalPrice += current;
         }
-
-        return finalPrice;
+        return res.size();
     }
 
     private Collection<Integer> findCycle() {
         Stack<Integer> nodeStack = new Stack<>();
 
-        int[] numberOfChildren = new int[adjencyList.size()];
-        boolean[] hasStackElement = new boolean[adjencyList.size()];
+        int[] numberOfChildren = new int[adjacencyList.size()];
+        boolean[] hasStackElement = new boolean[adjacencyList.size()];
 
         parentOf[0] = -1;
 
@@ -45,7 +47,7 @@ public class MatrixSolver {
             hasStackElement[processed] = true;
 
             boolean returning = true;
-            for (EdgePair p : adjencyList.get(processed)) {
+            for (EdgePair p : adjacencyList.get(processed)) {
                 int nextNode = p.getEndNode();
                 if (nextNode == parentOf[processed]) continue;
 
@@ -87,7 +89,8 @@ public class MatrixSolver {
     private int getPriceOfSubTreeFrom(int root, Collection<Integer> parent) {
         int finalPrice = 0;
         Stack<Integer> toVisit = new Stack<>();
-        for (EdgePair pair : adjencyList.get(root)) {
+
+        for (EdgePair pair : adjacencyList.get(root)) {
             int next = pair.getEndNode();
             if (parent.contains(next)) continue;
 
@@ -97,11 +100,13 @@ public class MatrixSolver {
 
         while (!toVisit.isEmpty()) {
             int processed = toVisit.pop();
+            if (keyServers[processed]) {
+                finalPrice++;
+            }
 
-            for (EdgePair pair : adjencyList.get(processed)) {
+            for (EdgePair pair : adjacencyList.get(processed)) {
                 int nextNode = pair.getEndNode();
                 if (parentOf[processed] != nextNode) {
-                    finalPrice = +pair.getPrice();
                     parentOf[nextNode] = processed;
                     toVisit.push(nextNode);
                 }

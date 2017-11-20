@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,7 +21,6 @@ public class MatrixReader {
             int countOfKeyServers = Integer.parseInt(firstLine[1]);
 
             long initTime = System.currentTimeMillis();
-            Collection<Integer> keyServersLabels = new TreeSet<>();
             ArrayList<Collection<EdgePair>> adjacencyList = new ArrayList<>(countOfAllServers + 2);
 
             for (int i = 0; i < countOfAllServers; i++) {
@@ -49,13 +47,15 @@ public class MatrixReader {
 
             initTime = System.currentTimeMillis();
             String[] lastLine = reader.readLine().split(" ");
+            boolean[] isKeyServer = new boolean[countOfAllServers];
             for (int i = 0; i < countOfKeyServers; i++) {
-                keyServersLabels.add(Integer.parseInt(lastLine[i]));
+                int keyServerId = Integer.parseInt(lastLine[i]);
+                isKeyServer[keyServerId] = true;
             }
             endTime = System.currentTimeMillis();
             totalTime = endTime - initTime;
             System.out.println("Reading keyservers time " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms\n");
-            data = new Data(countOfAllServers, countOfKeyServers, adjacencyList, keyServersLabels);
+            data = new Data(countOfAllServers, countOfKeyServers, adjacencyList, isKeyServer);
         } catch (Exception e) {
             Logger.getGlobal().log(Level.WARNING, e.toString());
         }

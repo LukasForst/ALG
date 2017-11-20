@@ -8,19 +8,13 @@ public class Data {
     private final int countOfKeyServers;
 
     private final ArrayList<Collection<EdgePair>> adjacencyList;
-    private final Collection<Integer> keyServers;
-    private final int firstKeyServer;
+    private final boolean[] keyServers;
 
-    public Data(int countOfAllServers, int countOfKeyServers, ArrayList<Collection<EdgePair>> adjacencyList, Collection<Integer> keyServers) {
+    public Data(int countOfAllServers, int countOfKeyServers, ArrayList<Collection<EdgePair>> adjacencyList, boolean[] keyServers) {
         this.countOfAllServers = countOfAllServers;
         this.countOfKeyServers = countOfKeyServers;
         this.adjacencyList = adjacencyList;
         this.keyServers = keyServers;
-        firstKeyServer = keyServers.iterator().next();
-    }
-
-    public int getFirstKeyServer() {
-        return firstKeyServer;
     }
 
     public int getCountOfAllServers() {
@@ -35,7 +29,7 @@ public class Data {
         return adjacencyList;
     }
 
-    public Collection<Integer> getKeyServers() {
+    public boolean[] getKeyServers() {
         return keyServers;
     }
 
@@ -50,9 +44,7 @@ public class Data {
             }
             sb.append("\n");
         }
-        for (int keyServer : keyServers) {
-            sb.append(keyServer).append(" ");
-        }
+
         sb.append("\n");
 
         return sb.toString();

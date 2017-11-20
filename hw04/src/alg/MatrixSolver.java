@@ -33,7 +33,7 @@ public class MatrixSolver {
         boolean[] containsNode = new boolean[adjencyList.size()];
         parentOf = new int[adjencyList.size()];
         parentOf[0] = -1;
-        nodeStack.push(0);
+//        nodeStack.push(0);
         findCycleRecursive(0);
 
         int cycleEnd = nodeStack.pop();
@@ -53,28 +53,38 @@ public class MatrixSolver {
     }
 
     private void findCycleRecursive(int node) {
-        for (EdgePair edgePair : adjencyList.get(node)) {
-            if (cycleFound)
-                return;
+        int[] arr = new int[adjencyList.size()];
+        Stack<Integer> stack = new Stack<>();
+        stack.push(node);
+        while (!stack.isEmpty()) {
+            int processed = stack.pop();
+            nodeStack.push(processed);
 
-            int nextNode = edgePair.getEndNode();
-            if (nextNode == parentOf[node]) {
-                continue;
+            boolean returning = true;
+            for (EdgePair p : adjencyList.get(processed)) {
+                int nextNode = p.getEndNode();
+                if (nextNode == parentOf[processed]) continue;
+
+                parentOf[nextNode] = processed;
+                if (nodeStack.contains(nextNode)) {
+                    nodeStack.push(nextNode);
+                    return;
+                }
+                arr[processed]++;
+                stack.push(nextNode);
+                returning = false;
             }
-            parentOf[nextNode] = node;
 
-            if (nodeStack.contains(nextNode)) {
-                nodeStack.push(nextNode);
-                cycleFound = true;
-                return;
+            if (returning) {
+                nodeStack.pop();
+//                nodeStack.remove((Integer) processed);
+                int parent = parentOf[processed];
+                while (arr[parent] <= 1) {
+//                    nodeStack.remove((Integer) parent);
+                    nodeStack.pop();
+                    parent = parentOf[parent];
+                }
             }
-
-            nodeStack.push(nextNode);
-            findCycleRecursive(nextNode);
-        }
-
-        if (!nodeStack.isEmpty() && !cycleFound) {
-            int next = nodeStack.pop();
         }
     }
 

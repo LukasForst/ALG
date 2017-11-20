@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -27,7 +26,7 @@ public class MatrixReader {
             ArrayList<Collection<EdgePair>> adjacencyList = new ArrayList<>(countOfAllServers + 2);
 
             for (int i = 0; i < countOfAllServers; i++) {
-                adjacencyList.add(new LinkedList<>());
+                adjacencyList.add(new ArrayList<>());
             }
             long endTime = System.currentTimeMillis();
             long totalTime = endTime - initTime;

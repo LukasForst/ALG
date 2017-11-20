@@ -1,40 +1,78 @@
 package alg;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Stack;
+import java.util.TreeSet;
 
 public class MatrixSolver {
     private Data data;
-    private final int keyServersCount;
     private final ArrayList<Collection<EdgePair>> adjencyList;
-    private final Collection<Integer> keyServers;
-    Stack<Integer> nodeStack = new Stack<>();
-    int[] parentOf;
-    private Collection<Integer> visitedKeyServers = new HashSet<>();
-    private Collection<Integer> visitedServers = new HashSet<>();
-    private boolean cycleFound = false;
-    private Queue<EdgePair> toVisit = new PriorityQueue<>();
+
+    private int[] parentOf;
 
     public MatrixSolver(Data data) {
         this.data = data;
-        keyServersCount = data.getCountOfKeyServers();
         adjencyList = data.getAdjacencyList();
-        keyServers = data.getKeyServers();
+
+        parentOf = new int[adjencyList.size()];
     }
 
     public int solve() {
         Collection<Integer> res = findCycle();
-        if (res != null)
-            return res.size();
-        return -1;
+        int finalPrice = 0;
+        for (int node : res) {
+            finalPrice += getPriceOfSubTreeFrom(node, res);
+        }
+
+        return finalPrice;
     }
 
     private Collection<Integer> findCycle() {
-        nodeStack = new Stack<>();
-        boolean[] containsNode = new boolean[adjencyList.size()];
-        parentOf = new int[adjencyList.size()];
+        Stack<Integer> nodeStack = new Stack<>();
+
+        int[] numberOfChildren = new int[adjencyList.size()];
+        boolean[] hasStackElement = new boolean[adjencyList.size()];
+
         parentOf[0] = -1;
-//        nodeStack.push(0);
-        findCycleRecursive(0);
+
+        Stack<Integer> toVisitStack = new Stack<>();
+        toVisitStack.push(0);
+        boolean flag = false;
+        while (!toVisitStack.isEmpty() && !flag) {
+            int processed = toVisitStack.pop();
+            nodeStack.push(processed);
+            hasStackElement[processed] = true;
+
+            boolean returning = true;
+            for (EdgePair p : adjencyList.get(processed)) {
+                int nextNode = p.getEndNode();
+                if (nextNode == parentOf[processed]) continue;
+
+                parentOf[nextNode] = processed;
+                if (hasStackElement[nextNode]) {
+                    hasStackElement[nextNode] = true;
+                    nodeStack.push(nextNode);
+                    returning = false;
+                    flag = true;
+                    break;
+                }
+                numberOfChildren[processed]++;
+                toVisitStack.push(nextNode);
+                returning = false;
+            }
+
+            if (returning) {
+                nodeStack.pop();
+                hasStackElement[processed] = false;
+                int parent = parentOf[processed];
+                while (numberOfChildren[parent] <= 1) {
+                    nodeStack.pop();
+                    hasStackElement[parent] = false;
+                    parent = parentOf[parent];
+                }
+            }
+        }
 
         int cycleEnd = nodeStack.pop();
         Collection<Integer> cycleNodes = new TreeSet<>();
@@ -46,57 +84,40 @@ public class MatrixSolver {
         return cycleNodes;
     }
 
-    private void removeObsoleteNodes() {
-        for (Collection<EdgePair> pairs : adjencyList) {
-
-        }
-    }
-
-    private void findCycleRecursive(int node) {
-        int[] arr = new int[adjencyList.size()];
-        Stack<Integer> stack = new Stack<>();
-        stack.push(node);
-        while (!stack.isEmpty()) {
-            int processed = stack.pop();
-            nodeStack.push(processed);
-
-            boolean returning = true;
-            for (EdgePair p : adjencyList.get(processed)) {
-                int nextNode = p.getEndNode();
-                if (nextNode == parentOf[processed]) continue;
-
-                parentOf[nextNode] = processed;
-                if (nodeStack.contains(nextNode)) {
-                    nodeStack.push(nextNode);
-                    return;
-                }
-                arr[processed]++;
-                stack.push(nextNode);
-                returning = false;
-            }
-
-            if (returning) {
-                nodeStack.pop();
-//                nodeStack.remove((Integer) processed);
-                int parent = parentOf[processed];
-                while (arr[parent] <= 1) {
-//                    nodeStack.remove((Integer) parent);
-                    nodeStack.pop();
-                    parent = parentOf[parent];
-                }
-            }
-        }
-    }
-
-    private int getPriceOfSubTreeFrom(int startNode) {
+    private int getPriceOfSubTreeFrom(int root, Collection<Integer> parent) {
         int finalPrice = 0;
+        Stack<Integer> toVisit = new Stack<>();
+        for (EdgePair pair : adjencyList.get(root)) {
+            int next = pair.getEndNode();
+            if (parent.contains(next)) continue;
+
+            parentOf[next] = root;
+            toVisit.push(next);
+        }
+
+        while (!toVisit.isEmpty()) {
+            int processed = toVisit.pop();
+
+            for (EdgePair pair : adjencyList.get(processed)) {
+                int nextNode = pair.getEndNode();
+                if (parentOf[processed] != nextNode) {
+                    finalPrice = +pair.getPrice();
+                    parentOf[nextNode] = processed;
+                    toVisit.push(nextNode);
+                }
+            }
+        }
 
         return finalPrice;
     }
+}
 
-    private void recursiveSolve(int node, int parent) {
+class Pair {
+    int price;
+    int node;
 
+    public Pair(int price, int depth) {
+        this.price = price;
+        this.node = depth;
     }
-
-
 }

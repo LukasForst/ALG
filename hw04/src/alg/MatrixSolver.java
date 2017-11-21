@@ -1,7 +1,5 @@
 package alg;
 
-import sun.plugin.dom.exception.InvalidStateException;
-
 import java.util.*;
 
 public class MatrixSolver {
@@ -43,7 +41,7 @@ public class MatrixSolver {
             finalPrice += current * 2;
         }
 
-        if (!checkCycle(compulsoryMap)) throw new InvalidStateException("Cycle is not cycle!");
+        if (!checkCycle(compulsoryMap)) throw new IllegalStateException("Cycle is not cycle!");
 
         int shortestInCycle = findShortestPathInCycle(compulsoryMap, mandatoryNodesCount);
         System.out.println("In cycle - " + shortestInCycle);

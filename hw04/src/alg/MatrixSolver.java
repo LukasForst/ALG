@@ -40,7 +40,7 @@ public class MatrixSolver {
 
             finalPrice += current * 2;
         }
-
+        System.out.println(sb.toString());
         if (!checkCycle(compulsoryMap)) throw new IllegalStateException("Cycle is not cycle!");
 
         int shortestInCycle = findShortestPathInCycle(compulsoryMap, mandatoryNodesCount);
@@ -203,35 +203,72 @@ public class MatrixSolver {
 
         while (!toVisit.isEmpty()) {
             EdgePair node = toVisit.pop();
-            getPriceOfSubTreeRecursive(node.getEndNode());
-            if (keyServers[node.getEndNode()] || finalPriceForSubTree != 0) {
-                finalPriceForSubTree += node.getPrice();
-            }
-
-            finalPrice += finalPriceForSubTree;
-            finalPriceForSubTree = 0;
-
+            finalPrice += getPriceOfSubTreeRecursive(node);
         }
 
 
         return finalPrice;
     }
 
-    private int getPriceOfSubTreeRecursive(int node) {
+    private int getPriceOfSubTreeRecursive(EdgePair startNode) {
         int price = 0;
-        for (EdgePair pair : adjacencyList.get(node)) {
-            int next = pair.getEndNode();
+        int tmpPrice = 0;
 
-            if (parentOf[node] == next) continue;
+        Stack<EdgePair> nodeStack = new Stack<>();
 
-            price += pair.getPrice();
-            if (keyServers[next]) {
-                finalPriceForSubTree += price;
-                price = 0;
+        int[] numberOfChildren = new int[adjacencyList.size()];
+        boolean[] hasStackElement = new boolean[adjacencyList.size()];
+
+        parentOf[0] = -1;
+
+        Stack<EdgePair> toVisitStack = new Stack<>();
+        toVisitStack.push(startNode);
+
+        while (!toVisitStack.isEmpty()) {
+            EdgePair processed = toVisitStack.pop();
+            nodeStack.push(processed);
+            int processedValue = processed.getEndNode();
+
+            tmpPrice += processed.getPrice();
+            if (keyServers[processedValue]) {
+                price += tmpPrice;
+                tmpPrice = 0;
             }
-            parentOf[next] = node;
-            price += getPriceOfSubTreeRecursive(next);
+
+            boolean returning = true;
+            for (EdgePair p : adjacencyList.get(processedValue)) {
+                int nextNode = p.getEndNode();
+                if (nextNode == parentOf[processedValue]) continue;
+
+                parentOf[nextNode] = processedValue;
+                if (hasStackElement[nextNode]) {
+                    hasStackElement[nextNode] = true;
+                    nodeStack.push(p);
+                    returning = false;
+                    break;
+                }
+                numberOfChildren[processedValue]++;
+                toVisitStack.push(p);
+                returning = false;
+            }
+
+            if (returning) {
+                EdgePair pair = nodeStack.pop();
+                tmpPrice -= pair.getPrice();
+                hasStackElement[processedValue] = false;
+                int parent = parentOf[processedValue];
+                numberOfChildren[parent]--;
+
+                while (numberOfChildren[parent] == 0) {
+                    pair = nodeStack.pop();
+                    tmpPrice -= pair.getPrice();
+                    hasStackElement[parent] = false;
+                    parent = parentOf[parent];
+                    numberOfChildren[parent]--;
+                }
+            }
         }
+
         return price;
     }
 }

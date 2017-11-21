@@ -41,11 +41,29 @@ public class MatrixSolver {
             finalPrice += current * 2;
         }
 
-        System.out.println(sb.toString());
+        System.out.println(checkCycle(compulsoryMap));
 
-        int shortestInCycle = findShortestPathInCycle(compulsoryMap, mandatoryNodesCount);
-        System.out.println("In cycle - " + shortestInCycle);
-        return finalPrice + shortestInCycle * 2;
+//        int shortestInCycle = findShortestPathInCycle(compulsoryMap, mandatoryNodesCount);
+//        System.out.println("In cycle - " + shortestInCycle);
+//        return finalPrice + shortestInCycle * 2;
+        return cycle.size();
+    }
+
+    private boolean checkCycle(Map<Integer, Boolean> compulsoryMap) {
+        Set<Integer> keySet = compulsoryMap.keySet();
+        for (int key : keySet) {
+            int count = 0;
+            for (EdgePair pair : adjacencyList.get(key)) {
+                if (isInCycle[pair.getEndNode()] != 0) {
+                    count++;
+                }
+            }
+
+            if (count != 2) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private int findShortestPathInCycle(Map<Integer, Boolean> compulsoryMap, int mandatoryNodesCount) {
@@ -142,10 +160,13 @@ public class MatrixSolver {
                 nodeStack.pop();
                 hasStackElement[processed] = false;
                 int parent = parentOf[processed];
-                while (numberOfChildren[parent] <= 1) {
+                numberOfChildren[parent]--;
+
+                while (numberOfChildren[parent] == 0) {
                     nodeStack.pop();
                     hasStackElement[parent] = false;
                     parent = parentOf[parent];
+                    numberOfChildren[parent]--;
                 }
             }
         }

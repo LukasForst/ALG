@@ -1,16 +1,14 @@
 package alg;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Stack;
-import java.util.TreeSet;
+import java.util.*;
 
 public class MatrixSolver {
     private Data data;
     private final ArrayList<Collection<EdgePair>> adjacencyList;
     private final boolean[] keyServers;
-
+    private final int[] isInCycle;
     private int[] parentOf;
+    private int finalPriceForSubTree = 0;
 
     public MatrixSolver(Data data) {
         this.data = data;
@@ -18,16 +16,92 @@ public class MatrixSolver {
 
         parentOf = new int[adjacencyList.size()];
         keyServers = data.getKeyServers();
+        isInCycle = new int[adjacencyList.size()];
     }
 
     public int solve() {
-        Collection<Integer> res = findCycle();
+        Collection<Integer> cycle = findCycle();
+        Map<Integer, Boolean> compulsoryMap = new HashMap<>(cycle.size());
+        int mandatoryNodesCount = 0;
         int finalPrice = 0;
-        for (int node : res) {
-            int current = getPriceOfSubTreeFrom(node, res);
-            finalPrice += current;
+        StringBuilder sb = new StringBuilder();
+        for (int node : cycle) {
+            int current = getPriceOfSubTreeFrom(node, cycle);
+            sb.append(node).append(" - ").append(current).append("\n");
+
+            if (current != 0) {
+                mandatoryNodesCount++;
+                compulsoryMap.put(node, true);
+                isInCycle[node] = 2;
+            } else {
+                compulsoryMap.put(node, false);
+                isInCycle[node] = 1;
+            }
+
+            finalPrice += current * 2;
         }
-        return res.size();
+
+        System.out.println(sb.toString());
+
+        int shortestInCycle = findShortestPathInCycle(compulsoryMap, mandatoryNodesCount);
+        System.out.println("In cycle - " + shortestInCycle);
+        return finalPrice + shortestInCycle * 2;
+    }
+
+    private int findShortestPathInCycle(Map<Integer, Boolean> compulsoryMap, int mandatoryNodesCount) {
+        int startNode = getFirst(compulsoryMap);
+        int finalPriceForCycle = 0;
+        if (startNode != -1) {
+
+            Iterator<EdgePair> iterator = adjacencyList.get(startNode).iterator();
+            int count = 0;
+            int tmp = 0;
+            EdgePair[] pairs = new EdgePair[2];
+            while (iterator.hasNext() && count < 2) {
+                EdgePair pair = iterator.next();
+                if (isInCycle[pair.getEndNode()] != 0) {
+                    pairs[count++] = pair;
+                }
+                tmp++;
+            }
+            count = 0;
+            System.out.println("Got starting points.");
+            int leftPrice = getPriceFromToInCycle(startNode, pairs[0].getEndNode(), pairs[0].getPrice(), mandatoryNodesCount);
+            System.out.println("Got left.");
+            int rightPrice = getPriceFromToInCycle(startNode, pairs[1].getEndNode(), pairs[1].getPrice(), mandatoryNodesCount);
+            System.out.println("Got right.");
+            System.out.println("Start node " + startNode);
+            System.out.println("Left - " + leftPrice);
+            System.out.println("RIght - " + rightPrice);
+
+        } else {
+            finalPriceForCycle = -100;
+        }
+        return finalPriceForCycle;
+    }
+
+    private int getPriceFromToInCycle(int rootNode, int startNode, int price, int mandatoryNodesCount) {
+        int counter = 1;
+        Stack<Integer> toVisit = new Stack<>();
+        toVisit.push(startNode);
+        if (isInCycle[startNode] == 2) counter++;
+
+        parentOf[startNode] = rootNode;
+        while (!toVisit.isEmpty() && counter != mandatoryNodesCount) {
+            int processed = toVisit.pop();
+            for (EdgePair pair : adjacencyList.get(processed)) {
+                int nextNode = pair.getEndNode();
+
+                if (parentOf[processed] != nextNode && isInCycle[nextNode] != 0) {
+                    price += pair.getPrice();
+                    if (isInCycle[nextNode] == 2) counter++;
+                    parentOf[nextNode] = processed;
+                    toVisit.push(nextNode);
+                    break;
+                }
+            }
+        }
+        return price;
     }
 
     private Collection<Integer> findCycle() {
@@ -86,43 +160,56 @@ public class MatrixSolver {
         return cycleNodes;
     }
 
+    private int getFirst(Map<Integer, Boolean> compulsoryMap) {
+        for (int key : compulsoryMap.keySet()) {
+            if (compulsoryMap.get(key)) {
+                return key;
+            }
+        }
+        return -1;
+    }
+
     private int getPriceOfSubTreeFrom(int root, Collection<Integer> parent) {
         int finalPrice = 0;
-        Stack<Integer> toVisit = new Stack<>();
+        Stack<EdgePair> toVisit = new Stack<>();
 
         for (EdgePair pair : adjacencyList.get(root)) {
             int next = pair.getEndNode();
             if (parent.contains(next)) continue;
 
             parentOf[next] = root;
-            toVisit.push(next);
+            toVisit.push(pair);
         }
 
-        while (!toVisit.isEmpty()) {
-            int processed = toVisit.pop();
-            if (keyServers[processed]) {
-                finalPrice++;
+        for (EdgePair node : toVisit) {
+
+            getPriceOfSubTreeRecursive(node.getEndNode());
+            if (keyServers[node.getEndNode()] || finalPriceForSubTree != 0) {
+                finalPriceForSubTree += node.getPrice();
             }
 
-            for (EdgePair pair : adjacencyList.get(processed)) {
-                int nextNode = pair.getEndNode();
-                if (parentOf[processed] != nextNode) {
-                    parentOf[nextNode] = processed;
-                    toVisit.push(nextNode);
-                }
-            }
+            finalPrice += finalPriceForSubTree;
+            finalPriceForSubTree = 0;
         }
 
         return finalPrice;
     }
-}
 
-class Pair {
-    int price;
-    int node;
+    private int getPriceOfSubTreeRecursive(int node) {
+        int price = 0;
+        for (EdgePair pair : adjacencyList.get(node)) {
+            int next = pair.getEndNode();
 
-    public Pair(int price, int depth) {
-        this.price = price;
-        this.node = depth;
+            if (parentOf[node] == next) continue;
+
+            price += pair.getPrice();
+            if (keyServers[next]) {
+                finalPriceForSubTree += price;
+                price = 0;
+            }
+            parentOf[next] = node;
+            price += getPriceOfSubTreeRecursive(next);
+        }
+        return price;
     }
 }

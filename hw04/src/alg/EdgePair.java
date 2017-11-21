@@ -1,6 +1,6 @@
 package alg;
 
-class EdgePair implements Comparable<EdgePair> {
+class EdgePair {
     private final int startNode;
     private final int endNode;
     private final int price;
@@ -21,10 +21,5 @@ class EdgePair implements Comparable<EdgePair> {
 
     public int getPrice() {
         return price;
-    }
-
-    @Override
-    public int compareTo(EdgePair o) {
-        return getPrice() - o.getPrice();
     }
 }

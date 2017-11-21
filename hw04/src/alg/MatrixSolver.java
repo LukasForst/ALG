@@ -193,7 +193,7 @@ public class MatrixSolver {
 
     private int getPriceOfSubTreeFrom(int root) {
         int finalPrice = 0;
-        Collection<EdgePair> toVisit = new ArrayList<>();
+        Stack<EdgePair> toVisit = new Stack<>();
 
         for (EdgePair pair : adjacencyList.get(root)) {
             int next = pair.getEndNode();
@@ -203,8 +203,8 @@ public class MatrixSolver {
             toVisit.add(pair);
         }
 
-        for (EdgePair node : toVisit) {
-
+        while (!toVisit.isEmpty()) {
+            EdgePair node = toVisit.pop();
             getPriceOfSubTreeRecursive(node.getEndNode());
             if (keyServers[node.getEndNode()] || finalPriceForSubTree != 0) {
                 finalPriceForSubTree += node.getPrice();
@@ -212,7 +212,9 @@ public class MatrixSolver {
 
             finalPrice += finalPriceForSubTree;
             finalPriceForSubTree = 0;
+
         }
+
 
         return finalPrice;
     }

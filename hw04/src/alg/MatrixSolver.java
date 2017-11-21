@@ -254,14 +254,22 @@ public class MatrixSolver {
 
             if (returning) {
                 EdgePair pair = nodeStack.pop();
-                tmpPrice -= pair.getPrice();
+
+                if(!keyServers[processedValue]){
+                    tmpPrice -= pair.getPrice();
+                }
+
                 hasStackElement[processedValue] = false;
                 int parent = parentOf[processedValue];
                 numberOfChildren[parent]--;
 
                 while (numberOfChildren[parent] == 0) {
                     pair = nodeStack.pop();
-                    tmpPrice -= pair.getPrice();
+
+                    if(tmpPrice > 0 && !keyServers[pair.getEndNode()]){
+                        tmpPrice -= pair.getPrice();
+                    }
+
                     hasStackElement[parent] = false;
                     parent = parentOf[parent];
                     numberOfChildren[parent]--;

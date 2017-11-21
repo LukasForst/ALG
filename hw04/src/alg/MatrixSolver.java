@@ -1,5 +1,7 @@
 package alg;
 
+import sun.plugin.dom.exception.InvalidStateException;
+
 import java.util.*;
 
 public class MatrixSolver {
@@ -26,10 +28,10 @@ public class MatrixSolver {
         int finalPrice = 0;
         StringBuilder sb = new StringBuilder();
         for (int node : cycle) {
-            int current = getPriceOfSubTreeFrom(node, cycle);
+            int current = getPriceOfSubTreeFrom(node);
             sb.append(node).append(" - ").append(current).append("\n");
 
-            if (current != 0) {
+            if (current != 0 || keyServers[node]) {
                 mandatoryNodesCount++;
                 compulsoryMap.put(node, true);
                 isInCycle[node] = 2;
@@ -41,12 +43,11 @@ public class MatrixSolver {
             finalPrice += current * 2;
         }
 
-        System.out.println(checkCycle(compulsoryMap));
+        if (!checkCycle(compulsoryMap)) throw new InvalidStateException("Cycle is not cycle!");
 
-//        int shortestInCycle = findShortestPathInCycle(compulsoryMap, mandatoryNodesCount);
-//        System.out.println("In cycle - " + shortestInCycle);
-//        return finalPrice + shortestInCycle * 2;
-        return cycle.size();
+        int shortestInCycle = findShortestPathInCycle(compulsoryMap, mandatoryNodesCount);
+        System.out.println("In cycle - " + shortestInCycle);
+        return finalPrice + shortestInCycle * 2;
     }
 
     private boolean checkCycle(Map<Integer, Boolean> compulsoryMap) {
@@ -83,11 +84,8 @@ public class MatrixSolver {
                 tmp++;
             }
             count = 0;
-            System.out.println("Got starting points.");
             int leftPrice = getPriceFromToInCycle(startNode, pairs[0].getEndNode(), pairs[0].getPrice(), mandatoryNodesCount);
-            System.out.println("Got left.");
             int rightPrice = getPriceFromToInCycle(startNode, pairs[1].getEndNode(), pairs[1].getPrice(), mandatoryNodesCount);
-            System.out.println("Got right.");
             System.out.println("Start node " + startNode);
             System.out.println("Left - " + leftPrice);
             System.out.println("RIght - " + rightPrice);
@@ -174,8 +172,11 @@ public class MatrixSolver {
         int cycleEnd = nodeStack.pop();
         Collection<Integer> cycleNodes = new TreeSet<>();
         cycleNodes.add(cycleEnd);
+        isInCycle[cycleEnd] = 1;
         while (cycleEnd != nodeStack.peek()) {
-            cycleNodes.add(nodeStack.pop());
+            int nodeInCycle = nodeStack.pop();
+            isInCycle[nodeInCycle] = 1;
+            cycleNodes.add(nodeInCycle);
         }
 
         return cycleNodes;
@@ -190,16 +191,16 @@ public class MatrixSolver {
         return -1;
     }
 
-    private int getPriceOfSubTreeFrom(int root, Collection<Integer> parent) {
+    private int getPriceOfSubTreeFrom(int root) {
         int finalPrice = 0;
-        Stack<EdgePair> toVisit = new Stack<>();
+        Collection<EdgePair> toVisit = new ArrayList<>();
 
         for (EdgePair pair : adjacencyList.get(root)) {
             int next = pair.getEndNode();
-            if (parent.contains(next)) continue;
+            if (isInCycle[next] != 0) continue;
 
             parentOf[next] = root;
-            toVisit.push(pair);
+            toVisit.add(pair);
         }
 
         for (EdgePair node : toVisit) {

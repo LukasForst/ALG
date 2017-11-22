@@ -7,7 +7,7 @@ public class Main {
         long startTime = System.currentTimeMillis();
         MatrixReader reader = new MatrixReader();
         Data result = reader.readData();
-//        System.out.println(result);
+        System.out.println(result);
         long solveStartTime = System.currentTimeMillis();
         MatrixSolver solver = new MatrixSolver(result);
         System.out.println(solver.solve());

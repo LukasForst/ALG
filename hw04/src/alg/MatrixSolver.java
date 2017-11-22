@@ -42,10 +42,65 @@ public class MatrixSolver {
         }
         System.out.println(sb.toString());
         if (!checkCycle(compulsoryMap)) throw new IllegalStateException("Cycle is not cycle!");
-
-        int shortestInCycle = findShortestPathInCycle(compulsoryMap, mandatoryNodesCount);
+        System.out.println("cycle is ok");
+        AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformed = transformMapToCycle(compulsoryMap);
+        sb = new StringBuilder();
+        for (EdgePair e : transformed.getKey()) {
+            sb.append(e.getStartNode()).append(" - ").append(e.getEndNode()).append(" -- ").append(e.getPrice()).append("\n");
+        }
+        System.out.println("TRANSFORMED");
+        System.out.println(sb.toString());
+        int shortestInCycle = findShortest(transformed);
         System.out.println("In cycle - " + shortestInCycle);
-        return finalPrice + shortestInCycle * 2;
+
+        return finalPrice + shortestInCycle;
+    }
+
+    private int findShortest(AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformed) {
+        int maxPrice = transformed.getValue();
+        int minPrice = maxPrice;
+
+        for (EdgePair p : transformed.getKey()) {
+            int tmpPrice = (maxPrice - p.getPrice()) * 2;
+            minPrice = Integer.min(tmpPrice, minPrice);
+        }
+        return minPrice;
+    }
+
+    private AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformMapToCycle(Map<Integer, Boolean> compulsoryMap) {
+        Collection<EdgePair> result = new ArrayList<>(compulsoryMap.keySet().size());
+        Stack<Integer> toVisit = new Stack<>();
+        int first = getFirst(compulsoryMap);
+        toVisit.push(first);
+
+        int priceFromLast = 0;
+        int finalPrice = 0;
+        int lastKey = first;
+        TreeSet<Integer> visited = new TreeSet<>();
+        while (!toVisit.empty()) {
+            int processed = toVisit.pop();
+
+            for (EdgePair pair : adjacencyList.get(processed)) {
+                int nextValue = pair.getEndNode();
+                if (nextValue == parentOf[processed] || isInCycle[nextValue] == 0 || visited.contains(nextValue))
+                    continue;
+
+                priceFromLast += pair.getPrice();
+
+                if (isInCycle[nextValue] == 2) {
+                    result.add(new EdgePair(lastKey, nextValue, priceFromLast));
+                    finalPrice += priceFromLast;
+                    priceFromLast = 0;
+                    lastKey = nextValue;
+                }
+
+                parentOf[nextValue] = processed;
+                toVisit.push(nextValue);
+                visited.add(nextValue);
+            }
+        }
+
+        return new AbstractMap.SimpleEntry<Collection<EdgePair>, Integer>(result, finalPrice);
     }
 
     private boolean checkCycle(Map<Integer, Boolean> compulsoryMap) {
@@ -84,9 +139,9 @@ public class MatrixSolver {
             count = 0;
             int leftPrice = getPriceFromToInCycle(startNode, pairs[0].getEndNode(), pairs[0].getPrice(), mandatoryNodesCount);
             int rightPrice = getPriceFromToInCycle(startNode, pairs[1].getEndNode(), pairs[1].getPrice(), mandatoryNodesCount);
-            System.out.println("Start node " + startNode);
-            System.out.println("Left - " + leftPrice);
-            System.out.println("RIght - " + rightPrice);
+//            System.out.println("Start node " + startNode);
+//            System.out.println("Left - " + leftPrice);
+//            System.out.println("RIght - " + rightPrice);
 
         } else {
             finalPriceForCycle = -100;
@@ -255,7 +310,7 @@ public class MatrixSolver {
             if (returning) {
                 EdgePair pair = nodeStack.pop();
 
-                if(!keyServers[processedValue]){
+                if (!keyServers[processedValue]) {
                     tmpPrice -= pair.getPrice();
                 }
 
@@ -266,7 +321,7 @@ public class MatrixSolver {
                 while (numberOfChildren[parent] == 0) {
                     pair = nodeStack.pop();
 
-                    if(tmpPrice > 0 && !keyServers[pair.getEndNode()]){
+                    if (tmpPrice > 0 && !keyServers[pair.getEndNode()]) {
                         tmpPrice -= pair.getPrice();
                     }
 

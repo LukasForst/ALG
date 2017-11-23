@@ -1,6 +1,9 @@
 package alg;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Stack;
 
 public class MatrixSolver {
     private Data data;
@@ -25,7 +28,8 @@ public class MatrixSolver {
 
     public int solve() {
         Collection<Integer> cycle = findCycle();
-        Map<Integer, Boolean> compulsoryMap = new HashMap<>(cycle.size());
+//        Map<Integer, Boolean> compulsoryMap = new HashMap<>(cycle.size());
+        Collection<Integer> compMap = new ArrayList<>(cycle.size());
         int mandatoryNodesCount = 0;
         int finalPrice = 0;
         for (int node : cycle) {
@@ -33,23 +37,28 @@ public class MatrixSolver {
 
             if (current != 0 || keyServers[node]) {
                 mandatoryNodesCount++;
-                compulsoryMap.put(node, true);
+                compMap.add(node);
                 isInCycle[node] = 2;
             } else {
-                compulsoryMap.put(node, false);
+//                compulsoryMap.put(node, false);
+                compMap.add(node);
                 isInCycle[node] = 1;
             }
 
             finalPrice += current * 2;
         }
 //        if (!checkCycle(compulsoryMap)) throw new IllegalStateException("Cycle is not cycle!");
-        AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformed = transformMapToCycle(compulsoryMap);
+        AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformed = transformMapToCycle(compMap);
         int shortestInCycle = findShortest(transformed);
         return finalPrice + shortestInCycle;
     }
 
     private int findShortest(AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformed) {
         int maxPrice = transformed.getValue();
+
+        if (transformed.getKey().size() == 1)
+            return 0;
+
         int minPrice = maxPrice;
 
         for (EdgePair p : transformed.getKey()) {
@@ -59,8 +68,8 @@ public class MatrixSolver {
         return minPrice;
     }
 
-    private AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformMapToCycle(Map<Integer, Boolean> compulsoryMap) {
-        Collection<EdgePair> result = new ArrayList<>(compulsoryMap.keySet().size());
+    private AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformMapToCycle(Collection<Integer> compulsoryMap) {
+        Collection<EdgePair> result = new ArrayList<>(compulsoryMap.size());
         Stack<Integer> toVisit = new Stack<>();
         int first = getFirst(compulsoryMap);
         toVisit.push(first);
@@ -92,24 +101,7 @@ public class MatrixSolver {
             }
         }
 
-        return new AbstractMap.SimpleEntry<Collection<EdgePair>, Integer>(result, finalPrice);
-    }
-
-    private boolean checkCycle(Map<Integer, Boolean> compulsoryMap) {
-        Set<Integer> keySet = compulsoryMap.keySet();
-        for (int key : keySet) {
-            int count = 0;
-            for (EdgePair pair : adjacencyList.get(key)) {
-                if (isInCycle[pair.getEndNode()] != 0) {
-                    count++;
-                }
-            }
-
-            if (count != 2) {
-                return false;
-            }
-        }
-        return true;
+        return new AbstractMap.SimpleEntry<>(result, finalPrice);
     }
 
     private Collection<Integer> findCycle() {
@@ -179,9 +171,9 @@ public class MatrixSolver {
         return cycleNodes;
     }
 
-    private int getFirst(Map<Integer, Boolean> compulsoryMap) {
-        for (int key : compulsoryMap.keySet()) {
-            if (compulsoryMap.get(key)) {
+    private int getFirst(Collection<Integer> c) {
+        for (int key : c) {
+            if (isInCycle[key] == 2) {
                 return key;
             }
         }

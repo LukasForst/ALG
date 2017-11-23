@@ -8,7 +8,9 @@ public class MatrixSolver {
     private final boolean[] keyServers;
     private final int[] isInCycle;
     private int[] parentOf;
-    private int finalPriceForSubTree = 0;
+
+    int[] numberOfChildren;
+    boolean[] hasStackElement;
 
     public MatrixSolver(Data data) {
         this.data = data;
@@ -17,6 +19,8 @@ public class MatrixSolver {
         parentOf = new int[adjacencyList.size()];
         keyServers = data.getKeyServers();
         isInCycle = new int[adjacencyList.size()];
+        numberOfChildren = new int[adjacencyList.size()];
+        hasStackElement = new boolean[adjacencyList.size()];
     }
 
     public int solve() {
@@ -24,10 +28,8 @@ public class MatrixSolver {
         Map<Integer, Boolean> compulsoryMap = new HashMap<>(cycle.size());
         int mandatoryNodesCount = 0;
         int finalPrice = 0;
-        StringBuilder sb = new StringBuilder();
         for (int node : cycle) {
             int current = getPriceOfSubTreeFrom(node);
-            sb.append(node).append(" - ").append(current).append("\n");
 
             if (current != 0 || keyServers[node]) {
                 mandatoryNodesCount++;
@@ -40,19 +42,9 @@ public class MatrixSolver {
 
             finalPrice += current * 2;
         }
-        System.out.println(sb.toString());
-        if (!checkCycle(compulsoryMap)) throw new IllegalStateException("Cycle is not cycle!");
-        System.out.println("cycle is ok");
+//        if (!checkCycle(compulsoryMap)) throw new IllegalStateException("Cycle is not cycle!");
         AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformed = transformMapToCycle(compulsoryMap);
-        sb = new StringBuilder();
-        for (EdgePair e : transformed.getKey()) {
-            sb.append(e.getStartNode()).append(" - ").append(e.getEndNode()).append(" -- ").append(e.getPrice()).append("\n");
-        }
-        System.out.println("TRANSFORMED");
-        System.out.println(sb.toString());
         int shortestInCycle = findShortest(transformed);
-        System.out.println("In cycle - " + shortestInCycle);
-
         return finalPrice + shortestInCycle;
     }
 
@@ -76,13 +68,13 @@ public class MatrixSolver {
         int priceFromLast = 0;
         int finalPrice = 0;
         int lastKey = first;
-        TreeSet<Integer> visited = new TreeSet<>();
+        boolean[] visited = new boolean[adjacencyList.size()];
         while (!toVisit.empty()) {
             int processed = toVisit.pop();
 
             for (EdgePair pair : adjacencyList.get(processed)) {
                 int nextValue = pair.getEndNode();
-                if (nextValue == parentOf[processed] || isInCycle[nextValue] == 0 || visited.contains(nextValue))
+                if (nextValue == parentOf[processed] || isInCycle[nextValue] == 0 || visited[nextValue])
                     continue;
 
                 priceFromLast += pair.getPrice();
@@ -96,7 +88,7 @@ public class MatrixSolver {
 
                 parentOf[nextValue] = processed;
                 toVisit.push(nextValue);
-                visited.add(nextValue);
+                visited[nextValue] = true;
             }
         }
 
@@ -120,75 +112,20 @@ public class MatrixSolver {
         return true;
     }
 
-    private int findShortestPathInCycle(Map<Integer, Boolean> compulsoryMap, int mandatoryNodesCount) {
-        int startNode = getFirst(compulsoryMap);
-        int finalPriceForCycle = 0;
-        if (startNode != -1) {
-
-            Iterator<EdgePair> iterator = adjacencyList.get(startNode).iterator();
-            int count = 0;
-            int tmp = 0;
-            EdgePair[] pairs = new EdgePair[2];
-            while (iterator.hasNext() && count < 2) {
-                EdgePair pair = iterator.next();
-                if (isInCycle[pair.getEndNode()] != 0) {
-                    pairs[count++] = pair;
-                }
-                tmp++;
-            }
-            count = 0;
-            int leftPrice = getPriceFromToInCycle(startNode, pairs[0].getEndNode(), pairs[0].getPrice(), mandatoryNodesCount);
-            int rightPrice = getPriceFromToInCycle(startNode, pairs[1].getEndNode(), pairs[1].getPrice(), mandatoryNodesCount);
-//            System.out.println("Start node " + startNode);
-//            System.out.println("Left - " + leftPrice);
-//            System.out.println("RIght - " + rightPrice);
-
-        } else {
-            finalPriceForCycle = -100;
-        }
-        return finalPriceForCycle;
-    }
-
-    private int getPriceFromToInCycle(int rootNode, int startNode, int price, int mandatoryNodesCount) {
-        int counter = 1;
-        Stack<Integer> toVisit = new Stack<>();
-        toVisit.push(startNode);
-        if (isInCycle[startNode] == 2) counter++;
-
-        parentOf[startNode] = rootNode;
-        while (!toVisit.isEmpty() && counter != mandatoryNodesCount) {
-            int processed = toVisit.pop();
-            for (EdgePair pair : adjacencyList.get(processed)) {
-                int nextNode = pair.getEndNode();
-
-                if (parentOf[processed] != nextNode && isInCycle[nextNode] != 0) {
-                    price += pair.getPrice();
-                    if (isInCycle[nextNode] == 2) counter++;
-                    parentOf[nextNode] = processed;
-                    toVisit.push(nextNode);
-                    break;
-                }
-            }
-        }
-        return price;
-    }
-
     private Collection<Integer> findCycle() {
         Stack<Integer> nodeStack = new Stack<>();
-
-        int[] numberOfChildren = new int[adjacencyList.size()];
-        boolean[] hasStackElement = new boolean[adjacencyList.size()];
-
         parentOf[0] = -1;
-
         Stack<Integer> toVisitStack = new Stack<>();
         toVisitStack.push(0);
         boolean flag = false;
+        int countInCycle = 0;
         while (!toVisitStack.isEmpty() && !flag) {
             int processed = toVisitStack.pop();
             nodeStack.push(processed);
+            countInCycle++;
             hasStackElement[processed] = true;
 
+            numberOfChildren[processed] = 0;
             boolean returning = true;
             for (EdgePair p : adjacencyList.get(processed)) {
                 int nextNode = p.getEndNode();
@@ -209,12 +146,14 @@ public class MatrixSolver {
 
             if (returning) {
                 nodeStack.pop();
+                countInCycle--;
                 hasStackElement[processed] = false;
                 int parent = parentOf[processed];
                 numberOfChildren[parent]--;
 
                 while (numberOfChildren[parent] == 0) {
                     nodeStack.pop();
+                    countInCycle--;
                     hasStackElement[parent] = false;
                     parent = parentOf[parent];
                     numberOfChildren[parent]--;
@@ -222,8 +161,13 @@ public class MatrixSolver {
             }
         }
 
+        for (int i = 0; i < adjacencyList.size(); i++) {
+            numberOfChildren[i] = 0;
+            hasStackElement[i] = false;
+        }
+
         int cycleEnd = nodeStack.pop();
-        Collection<Integer> cycleNodes = new TreeSet<>();
+        Collection<Integer> cycleNodes = new ArrayList<>(countInCycle);
         cycleNodes.add(cycleEnd);
         isInCycle[cycleEnd] = 1;
         while (cycleEnd != nodeStack.peek()) {
@@ -270,12 +214,6 @@ public class MatrixSolver {
         int tmpPrice = 0;
 
         Stack<EdgePair> nodeStack = new Stack<>();
-
-        int[] numberOfChildren = new int[adjacencyList.size()];
-        boolean[] hasStackElement = new boolean[adjacencyList.size()];
-
-        parentOf[0] = -1;
-
         Stack<EdgePair> toVisitStack = new Stack<>();
         toVisitStack.push(startNode);
 
@@ -290,6 +228,7 @@ public class MatrixSolver {
                 tmpPrice = 0;
             }
 
+            numberOfChildren[processedValue] = 0;
             boolean returning = true;
             for (EdgePair p : adjacencyList.get(processedValue)) {
                 int nextNode = p.getEndNode();

@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,7 +27,7 @@ public class MatrixReader {
             }
             long endTime = System.currentTimeMillis();
             long totalTime = endTime - initTime;
-            System.out.println("Initialising time " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
+//            System.out.println("Initialising time " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
 
             initTime = System.currentTimeMillis();
             for (int i = 0; i < countOfAllServers; i++) {
@@ -43,7 +42,7 @@ public class MatrixReader {
             }
             endTime = System.currentTimeMillis();
             totalTime = endTime - initTime;
-            System.out.println("Reading nodes time " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
+//            System.out.println("Reading nodes time " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
 
             initTime = System.currentTimeMillis();
             String[] lastLine = reader.readLine().split(" ");
@@ -54,7 +53,7 @@ public class MatrixReader {
             }
             endTime = System.currentTimeMillis();
             totalTime = endTime - initTime;
-            System.out.println("Reading keyservers time " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms\n");
+//            System.out.println("Reading keyservers time " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms\n");
             data = new Data(countOfAllServers, countOfKeyServers, adjacencyList, isKeyServer);
         } catch (Exception e) {
             Logger.getGlobal().log(Level.WARNING, e.toString());
@@ -62,7 +61,7 @@ public class MatrixReader {
 
         long endTime = System.currentTimeMillis();
         long totalTime = endTime - startTime;
-        System.out.println("Total reading time " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
+//        System.out.println("Total reading time " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");
         return data;
     }
 }

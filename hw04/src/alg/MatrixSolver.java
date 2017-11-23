@@ -6,51 +6,77 @@ import java.util.Collection;
 import java.util.Stack;
 
 public class MatrixSolver {
-    private Data data;
     private final ArrayList<Collection<EdgePair>> adjacencyList;
     private final boolean[] keyServers;
-    private final int[] isInCycle;
+    private final byte[] isInCycle;
     private int[] parentOf;
 
-    int[] numberOfChildren;
-    boolean[] hasStackElement;
+    private int[] numberOfChildren;
+    private boolean[] hasStackElement;
 
     public MatrixSolver(Data data) {
-        this.data = data;
         adjacencyList = data.getAdjacencyList();
 
         parentOf = new int[adjacencyList.size()];
         keyServers = data.getKeyServers();
-        isInCycle = new int[adjacencyList.size()];
+        isInCycle = new byte[adjacencyList.size()];
         numberOfChildren = new int[adjacencyList.size()];
         hasStackElement = new boolean[adjacencyList.size()];
     }
 
     public int solve() {
         Collection<Integer> cycle = findCycle();
-//        Map<Integer, Boolean> compulsoryMap = new HashMap<>(cycle.size());
         Collection<Integer> compMap = new ArrayList<>(cycle.size());
-        int mandatoryNodesCount = 0;
         int finalPrice = 0;
         for (int node : cycle) {
             int current = getPriceOfSubTreeFrom(node);
 
             if (current != 0 || keyServers[node]) {
-                mandatoryNodesCount++;
                 compMap.add(node);
                 isInCycle[node] = 2;
             } else {
-//                compulsoryMap.put(node, false);
                 compMap.add(node);
                 isInCycle[node] = 1;
             }
 
             finalPrice += current * 2;
         }
-//        if (!checkCycle(compulsoryMap)) throw new IllegalStateException("Cycle is not cycle!");
         AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformed = transformMapToCycle(compMap);
-        int shortestInCycle = findShortest(transformed);
-        return finalPrice + shortestInCycle;
+
+        if (transformed.getKey().size() == 1)
+            return getNonCycledPrice(transformed.getKey().iterator().next(), finalPrice);
+        else {
+            int shortestInCycle = findShortest(transformed);
+            return finalPrice + shortestInCycle;
+        }
+
+    }
+
+    private int getNonCycledPrice(EdgePair startNode, int finPrice) {
+        int tmpPrice = 0;
+        Stack<EdgePair> toVisit = new Stack<>();
+        toVisit.push(startNode);
+
+        boolean flag = false;
+        while (!toVisit.isEmpty() && !flag) {
+            EdgePair processed = toVisit.pop();
+            int processedValue = processed.getEndNode();
+
+            for (EdgePair p : adjacencyList.get(processedValue)) {
+                int next = p.getEndNode();
+                if (next == parentOf[processedValue] || isInCycle[next] != 0) continue;
+
+                tmpPrice += p.getPrice();
+                toVisit.push(p);
+
+                if (keyServers[next]) {
+                    flag = true;
+                    break;
+                }
+            }
+        }
+
+        return finPrice - (tmpPrice * 2);
     }
 
     private int findShortest(AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformed) {

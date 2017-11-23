@@ -76,7 +76,6 @@ public class MatrixSolver {
 
         int priceFromLast = 0;
         int finalPrice = 0;
-        int lastKey = first;
         boolean[] visited = new boolean[adjacencyList.size()];
         while (!toVisit.empty()) {
             int processed = toVisit.pop();
@@ -89,10 +88,9 @@ public class MatrixSolver {
                 priceFromLast += pair.getPrice();
 
                 if (isInCycle[nextValue] == 2) {
-                    result.add(new EdgePair(lastKey, nextValue, priceFromLast));
+                    result.add(new EdgePair(nextValue, priceFromLast));
                     finalPrice += priceFromLast;
                     priceFromLast = 0;
-                    lastKey = nextValue;
                 }
 
                 parentOf[nextValue] = processed;

@@ -37,8 +37,8 @@ public class MatrixReader {
                 int node2 = Integer.parseInt(line[1]);
                 int price = Integer.parseInt(line[2]);
 
-                adjacencyList.get(node1).add(new EdgePair(node1, node2, price));
-                adjacencyList.get(node2).add(new EdgePair(node2, node1, price));
+                adjacencyList.get(node1).add(new EdgePair(node2, price));
+                adjacencyList.get(node2).add(new EdgePair(node1, price));
             }
             endTime = System.currentTimeMillis();
             totalTime = endTime - initTime;

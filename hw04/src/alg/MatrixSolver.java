@@ -1,12 +1,10 @@
 package alg;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Stack;
+import java.util.*;
 
 public class MatrixSolver {
     private final ArrayList<Collection<EdgePair>> adjacencyList;
+    private final int allServersCount;
     private final boolean[] keyServers;
     private final byte[] isInCycle;
     private int[] parentOf;
@@ -14,14 +12,17 @@ public class MatrixSolver {
     private int[] numberOfChildren;
     private boolean[] hasStackElement;
 
+    public boolean solved = false;
+    public int solution = 0;
+
     public MatrixSolver(Data data) {
         adjacencyList = data.getAdjacencyList();
-
-        parentOf = new int[adjacencyList.size()];
+        allServersCount = data.getCountOfAllServers();
+        parentOf = new int[allServersCount];
         keyServers = data.getKeyServers();
-        isInCycle = new byte[adjacencyList.size()];
-        numberOfChildren = new int[adjacencyList.size()];
-        hasStackElement = new boolean[adjacencyList.size()];
+        isInCycle = new byte[allServersCount];
+        numberOfChildren = new int[allServersCount];
+        hasStackElement = new boolean[allServersCount];
     }
 
     public int solve() {
@@ -41,15 +42,16 @@ public class MatrixSolver {
 
             finalPrice += current * 2;
         }
+
         AbstractMap.SimpleEntry<Collection<EdgePair>, Integer> transformed = transformMapToCycle(compMap);
-
-        if (transformed.getKey().size() == 1)
-            return getNonCycledPrice(transformed.getKey().iterator().next(), finalPrice);
-        else {
+        if (transformed.getKey().size() == 1) {
+            solution = getNonCycledPrice(transformed.getKey().iterator().next(), finalPrice);
+        } else {
             int shortestInCycle = findShortest(transformed);
-            return finalPrice + shortestInCycle;
+            solution = finalPrice + shortestInCycle;
         }
-
+        solved = true;
+        return solution;
     }
 
     private int getNonCycledPrice(EdgePair startNode, int finPrice) {
@@ -129,13 +131,14 @@ public class MatrixSolver {
     }
 
     private Collection<Integer> findCycle() {
+        int first = new Random().nextInt(allServersCount) % (allServersCount - 1);
         Stack<Integer> nodeStack = new Stack<>();
-        parentOf[0] = -1;
+        parentOf[first] = -1;
         Stack<Integer> toVisitStack = new Stack<>();
-        toVisitStack.push(0);
+        toVisitStack.push(first);
         boolean flag = false;
         int countInCycle = 0;
-        while (!toVisitStack.isEmpty() && !flag) {
+        while (!toVisitStack.isEmpty()) {
             int processed = toVisitStack.pop();
             nodeStack.push(processed);
             countInCycle++;
@@ -160,6 +163,8 @@ public class MatrixSolver {
                 returning = false;
             }
 
+            if (flag) break;
+
             if (returning) {
                 nodeStack.pop();
                 countInCycle--;
@@ -177,7 +182,7 @@ public class MatrixSolver {
             }
         }
 
-        for (int i = 0; i < adjacencyList.size(); i++) {
+        for (int i = 0; i < allServersCount; i++) {
             numberOfChildren[i] = 0;
             hasStackElement[i] = false;
         }
@@ -248,18 +253,19 @@ public class MatrixSolver {
             boolean returning = true;
             for (EdgePair p : adjacencyList.get(processedValue)) {
                 int nextNode = p.getEndNode();
-                if (nextNode == parentOf[processedValue]) continue;
 
-                parentOf[nextNode] = processedValue;
-                if (hasStackElement[nextNode]) {
-                    hasStackElement[nextNode] = true;
-                    nodeStack.push(p);
-                    returning = false;
-                    break;
+                if (nextNode != parentOf[processedValue]) {
+
+                    parentOf[nextNode] = processedValue;
+                    if (!hasStackElement[nextNode]) {
+                        numberOfChildren[processedValue]++;
+                        toVisitStack.push(p);
+                        returning = false;
+                    } else {
+                        nodeStack.push(p);
+                        return price;
+                    }
                 }
-                numberOfChildren[processedValue]++;
-                toVisitStack.push(p);
-                returning = false;
             }
 
             if (returning) {

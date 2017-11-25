@@ -19,6 +19,17 @@ public class Node implements Comparable<Node> {
         this.parent = parent;
     }
 
+    public int refreshDepth() {
+        int tmpDepth = 0;
+        Node node = this;
+        while (node.getParent() != null) {
+            tmpDepth++;
+            node = node.getParent();
+        }
+        depth = tmpDepth;
+        return tmpDepth;
+    }
+
     public int getDepth() {
         return depth;
     }

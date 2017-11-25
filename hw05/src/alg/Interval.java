@@ -1,5 +1,9 @@
 package alg;
 
+enum IntervalResult {
+    BIGGER, SMALLER, IN_INTERVAL
+}
+
 public class Interval {
     private final int min;
     private final int max;
@@ -17,8 +21,15 @@ public class Interval {
         return max;
     }
 
-    public boolean isInInterval(int valueToVerify) {
-        return min <= valueToVerify && valueToVerify <= max;
+    /**
+     * Returns -1 if it is smaller than interval, 1 if it is bigger and 0 if interval contains this value;
+     */
+    public IntervalResult intervalState(int valueToVerify) {
+        if (min > valueToVerify)
+            return IntervalResult.SMALLER;
+        else if (max < valueToVerify)
+            return IntervalResult.BIGGER;
+        return IntervalResult.IN_INTERVAL;
     }
 
     @Override

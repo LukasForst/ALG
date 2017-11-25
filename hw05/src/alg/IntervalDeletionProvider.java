@@ -26,7 +26,15 @@ public class IntervalDeletionProvider {
         startRemoving(root);
 
         System.err.println("Total removed nodes: " + deletedNodes.size());
+
+        StringBuilder sb = new StringBuilder();
+        for (Node node : components) {
+            sb.append(node.getValue()).append(" ");
+        }
+
         System.err.println("Total found components: " + components.size());
+        System.err.println(sb.toString());
+
 
         return solution;
     }
@@ -43,7 +51,7 @@ public class IntervalDeletionProvider {
                 startRemoving(node.getRight());
                 break;
             case IN_INTERVAL:
-                removeNode(root);
+                removeNode(node);
                 break;
         }
     }

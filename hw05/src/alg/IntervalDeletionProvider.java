@@ -103,6 +103,32 @@ public class IntervalDeletionProvider {
         return node;
     }
 
+    private Node getMostRight(Node node) {
+        boolean flag = false;
+        while (node.getRight() != null && !flag) {
+            if (interval.intervalState(node.getRight().getValue()) != IntervalResult.IN_INTERVAL) {
+                node = node.getRight();
+                continue;
+            }
+
+            flag = true;
+        }
+        return flag ? node : null;
+    }
+
+    private Node getMostLeft(Node node) {
+        boolean flag = false;
+        while (node.getLeft() != null && !flag) {
+            if (interval.intervalState(node.getLeft().getValue()) != IntervalResult.IN_INTERVAL) {
+                node = node.getLeft();
+                continue;
+            }
+
+            flag = true;
+        }
+        return flag ? node : null;
+    }
+
     private void removeNode(Node toRemove) {
         deletedNodes.add(toRemove.getValue());
 
@@ -123,9 +149,13 @@ public class IntervalDeletionProvider {
                     components.add(right);
 
                     Node nextLeft = right.getLeft();
-                    if (nextLeft != null && interval.intervalState(nextLeft.getValue()) == IntervalResult.IN_INTERVAL) {
-                        // TODO: 25.11.2017 you have to check until it has children -> removed R- not R-not L- removed
-                        removeNode(nextLeft);
+                    if (nextLeft != null) {
+                        if (interval.intervalState(nextLeft.getValue()) == IntervalResult.IN_INTERVAL) {
+                            removeNode(nextLeft);
+                        } else {
+                            Node possibleRemoval = getMostLeft(nextLeft);
+                            if (possibleRemoval != null) removeNode(possibleRemoval);
+                        }
                     }
 
                     break;
@@ -147,9 +177,13 @@ public class IntervalDeletionProvider {
                     components.add(left);
 
                     Node nextRight = left.getRight();
-                    if (nextRight != null && interval.intervalState(nextRight.getValue()) == IntervalResult.IN_INTERVAL) {
-                        // TODO: 25.11.2017 you have to check until it has children -> removed R- not R-not L- removed
-                        removeNode(nextRight);
+                    if (nextRight != null) {
+                        if (interval.intervalState(nextRight.getValue()) == IntervalResult.IN_INTERVAL) {
+                            removeNode(nextRight);
+                        } else {
+                            Node possibleRemoval = getMostRight(nextRight);
+                            if (possibleRemoval != null) removeNode(possibleRemoval);
+                        }
                     }
                     break;
                 case IN_INTERVAL:

@@ -7,9 +7,8 @@ public class Main {
         long startTime = System.currentTimeMillis();
         TreeReader reader = new TreeReader();
 
-        Node root = reader.read();
-        System.out.println(root);
-
+        Data data = reader.read();
+        System.err.println("Nodes count: " + data.getNumberOfNodesInTree());
         long endTime = System.currentTimeMillis();
         long totalTime = endTime - startTime;
         System.err.println("Total execution time: " + TimeUnit.MILLISECONDS.toSeconds(totalTime) + "s = " + totalTime + "ms");

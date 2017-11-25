@@ -2,33 +2,34 @@ package alg;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 
 public class TreeReader {
-    public Node read() {
-        Node root;
+    public Data read() {
+        Data data;
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             int numberOfNodes = Integer.parseInt(reader.readLine());
 
-            int[] nodes = Arrays.stream(reader.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
-            root = new Node(nodes[0]);
+            String[] dataRead = reader.readLine().split(" ");
+            Node root = new Node(Integer.parseInt(dataRead[0]));
             root.setDepth(0);
+
             for (int i = 1; i < numberOfNodes; i++) {
-                int value = nodes[i];
+                int value = Integer.parseInt(dataRead[i]);
                 if (value > root.getValue()) {
                     addToRight(root, value, 1);
                 } else {
                     addToLeft(root, value, 1);
                 }
             }
-
+            dataRead = reader.readLine().split(" ");
+            data = new Data(root, numberOfNodes, new Interval(Integer.parseInt(dataRead[0]), Integer.parseInt(dataRead[1])));
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalStateException("Reading fucked up. Ending");
         }
 
-        return root;
+        return data;
     }
 
     private void addToLeft(Node parent, int valueToInsert, int depth) {

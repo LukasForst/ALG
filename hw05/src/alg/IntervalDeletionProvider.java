@@ -1,5 +1,6 @@
 package alg;
 
+
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,15 +46,61 @@ public class IntervalDeletionProvider {
 
         switch (interval.intervalState(node.getValue())) {
             case BIGGER:
+                verifyConnection(node, IntervalResult.BIGGER);
                 startRemoving(node.getLeft());
                 break;
             case SMALLER:
+                verifyConnection(node, IntervalResult.SMALLER);
                 startRemoving(node.getRight());
                 break;
             case IN_INTERVAL:
                 removeNode(node);
                 break;
         }
+    }
+
+    private void verifyConnection(Node node, IntervalResult result) {
+        Node parent = node.getParent();
+        if (parent == null) return;
+        switch (result) {
+            case BIGGER:
+                if (interval.intervalState(parent.getValue()) == IntervalResult.SMALLER) {
+
+                    if (parent.getRight() == node) {
+                        parent.setRight(null);
+                    } else {
+                        throw new IllegalStateException("Parent is smaller but this is left child");
+                    }
+
+                    node.setParent(null);
+                    components.add(node);
+                    components.add(getMostTopNode(parent));
+                }
+                break;
+            case SMALLER:
+                if (interval.intervalState(parent.getValue()) == IntervalResult.BIGGER) {
+                    if (parent.getLeft() == node) {
+                        parent.setLeft(null);
+                    } else {
+                        throw new IllegalStateException("Parent is bugger but this is right child");
+                    }
+
+                    node.setParent(null);
+                    components.add(node);
+                    components.add(getMostTopNode(parent));
+                }
+                break;
+            case IN_INTERVAL:
+                break;
+        }
+
+    }
+
+    private Node getMostTopNode(Node node) {
+        while (node.getParent() != null) {
+            node = node.getParent();
+        }
+        return node;
     }
 
     private void removeNode(Node toRemove) {
@@ -77,12 +124,13 @@ public class IntervalDeletionProvider {
 
                     Node nextLeft = right.getLeft();
                     if (nextLeft != null && interval.intervalState(nextLeft.getValue()) == IntervalResult.IN_INTERVAL) {
+                        // TODO: 25.11.2017 you have to check until it has children -> removed R- not R-not L- removed
                         removeNode(nextLeft);
                     }
 
                     break;
                 case SMALLER:
-                    throw new IllegalStateException("This should not happen, smaller node on the right side.");
+                    throw new IllegalStateException("This should not happened, smaller node on the right side.");
                 case IN_INTERVAL:
                     removeNode(right);
                     break;
@@ -93,13 +141,14 @@ public class IntervalDeletionProvider {
         if (left != null) {
             switch (interval.intervalState(left.getValue())) {
                 case BIGGER:
-                    throw new IllegalStateException("This should not happen, bigger node on the left side.");
+                    throw new IllegalStateException("This should not happened, bigger node on the left side.");
                 case SMALLER:
                     left.setParent(null);
                     components.add(left);
 
                     Node nextRight = left.getRight();
                     if (nextRight != null && interval.intervalState(nextRight.getValue()) == IntervalResult.IN_INTERVAL) {
+                        // TODO: 25.11.2017 you have to check until it has children -> removed R- not R-not L- removed
                         removeNode(nextRight);
                     }
                     break;

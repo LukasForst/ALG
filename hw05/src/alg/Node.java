@@ -9,10 +9,6 @@ public class Node implements Comparable<Node> {
     private Node right;
     private Node parent;
 
-    public Node(int value) {
-        this.value = value;
-    }
-
     public Node(int value, int depth, Node parent) {
         this.value = value;
         this.depth = depth;
@@ -30,6 +26,23 @@ public class Node implements Comparable<Node> {
         return tmpDepth;
     }
 
+    public void insertValue(int value) {
+        if (value > this.value) {
+            if (right == null) {
+                right = new Node(value, depth + 1, this);
+            } else {
+                right.insertValue(value);
+            }
+        } else {
+            if (left == null) {
+                left = new Node(value, depth + 1, this);
+            } else {
+                left.insertValue(value);
+            }
+        }
+    }
+
+
     public int getDepth() {
         return depth;
     }
@@ -46,16 +59,19 @@ public class Node implements Comparable<Node> {
         return left;
     }
 
-    public void setLeft(Node left) {
-        this.left = left;
+    public void setLeft(Node node) {
+        this.left = node;
+//        if (node != null) node.setParent(this);
     }
 
     public Node getRight() {
         return right;
     }
 
-    public void setRight(Node right) {
-        this.right = right;
+    public void setRight(Node node) {
+        this.right = node;
+//        if (node != null) node.setParent(this);
+
     }
 
     public Node getParent() {

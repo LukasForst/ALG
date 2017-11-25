@@ -2,6 +2,7 @@ package alg;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 
 public class TreeReader {
     public Data read() {
@@ -10,20 +11,17 @@ public class TreeReader {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             int numberOfNodes = Integer.parseInt(reader.readLine());
 
-            String[] dataRead = reader.readLine().split(" ");
-            Node root = new Node(Integer.parseInt(dataRead[0]));
-            root.setDepth(0);
+            int[] nodesArray = Arrays.stream(reader.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+            Arrays.sort(nodesArray);
 
-            for (int i = 1; i < numberOfNodes; i++) {
-                int value = Integer.parseInt(dataRead[i]);
-                if (value > root.getValue()) {
-                    addToRight(root, value, 1);
-                } else {
-                    addToLeft(root, value, 1);
-                }
-            }
-            dataRead = reader.readLine().split(" ");
-            data = new Data(root, numberOfNodes, new Interval(Integer.parseInt(dataRead[0]), Integer.parseInt(dataRead[1])));
+            int initialRootIndex = numberOfNodes / 2;
+            Node treeRoot = new Node(nodesArray[initialRootIndex], 0, null);
+
+            constructTree(nodesArray, 0, initialRootIndex - 1, 1, treeRoot);
+            constructTree(nodesArray, initialRootIndex + 1, numberOfNodes - 1, 1, treeRoot);
+
+            String[] intervalDeletion = reader.readLine().split(" ");
+            data = new Data(treeRoot, numberOfNodes, new Interval(Integer.parseInt(intervalDeletion[0]), Integer.parseInt(intervalDeletion[1])));
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalStateException("Reading fucked up. Ending");
@@ -32,31 +30,34 @@ public class TreeReader {
         return data;
     }
 
-    private void addToLeft(Node parent, int valueToInsert, int depth) {
-        Node left = parent.getLeft();
-        if (left == null) {
-            Node toAdd = new Node(valueToInsert, depth, parent);
-            parent.setLeft(toAdd);
-        } else if (left.getValue() > valueToInsert) {
-            addToLeft(left, valueToInsert, ++depth);
-        } else if (left.getValue() < valueToInsert) {
-            addToRight(left, valueToInsert, ++depth);
+    private void constructTree(int[] arr, int min, int max, int depth, Node root) {
+        if (max - min == 0) {
+            int value = arr[max];
+            Node node = new Node(value, depth, root);
+            if (root.getValue() > value) {
+                root.setLeft(node);
+            } else {
+                root.setRight(node);
+            }
         } else {
-            throw new IllegalArgumentException("Wrong argument, this is set. Value " + valueToInsert + " cannot be inserted.");
-        }
-    }
+            int nextNodeIndex = (max + min) / 2;
+            int value = arr[nextNodeIndex];
 
-    private void addToRight(Node parent, int valueToInsert, int depth) {
-        Node right = parent.getRight();
-        if (right == null) {
-            Node toAdd = new Node(valueToInsert, depth, parent);
-            parent.setRight(toAdd);
-        } else if (right.getValue() > valueToInsert) {
-            addToLeft(right, valueToInsert, ++depth);
-        } else if (right.getValue() < valueToInsert) {
-            addToRight(right, valueToInsert, ++depth);
-        } else {
-            throw new IllegalArgumentException("Wrong argument, this is set. Value " + valueToInsert + " cannot be inserted.");
+            Node node = new Node(value, depth, root);
+            if (root.getValue() > value) {
+                root.setLeft(node);
+            } else {
+                root.setRight(node);
+            }
+
+            depth++;
+            if (nextNodeIndex - 1 >= min) {
+                constructTree(arr, min, nextNodeIndex - 1, depth, node);
+            }
+
+            if (nextNodeIndex + 1 <= max) {
+                constructTree(arr, nextNodeIndex + 1, max, depth, node);
+            }
         }
     }
 }

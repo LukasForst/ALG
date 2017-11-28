@@ -2,6 +2,8 @@ package alg;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.Collection;
+import java.util.TreeSet;
 
 public class TreeReader {
     public Data read() {
@@ -10,11 +12,15 @@ public class TreeReader {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             int numberOfNodes = Integer.parseInt(reader.readLine());
 
+            Collection<Integer> allNodes = new TreeSet<>();
             String[] dataRead = reader.readLine().split(" ");
-            Node root = new Node(Integer.parseInt(dataRead[0]), 0, null);
+            int rootValue = Integer.parseInt(dataRead[0]);
+            Node root = new Node(rootValue, 0, null);
+            allNodes.add(rootValue);
 
             for (int i = 1; i < numberOfNodes; i++) {
                 int value = Integer.parseInt(dataRead[i]);
+                allNodes.add(value);
                 if (value > root.getValue()) {
                     addToRight(root, value, 1);
                 } else {
@@ -22,7 +28,7 @@ public class TreeReader {
                 }
             }
             dataRead = reader.readLine().split(" ");
-            data = new Data(root, numberOfNodes, new Interval(Integer.parseInt(dataRead[0]), Integer.parseInt(dataRead[1])));
+            data = new Data(root, numberOfNodes, new Interval(Integer.parseInt(dataRead[0]), Integer.parseInt(dataRead[1])), allNodes);
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalStateException("Reading fucked up. Ending");

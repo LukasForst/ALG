@@ -42,6 +42,25 @@ public class Node implements Comparable<Node> {
         }
     }
 
+    public void insertLeft(Node node) {
+        if (node == null) return;
+        Node current = this;
+        while (current.getLeft() != null) {
+            current = current.getLeft();
+        }
+
+        current.setLeft(node);
+    }
+
+    public void insertRight(Node node) {
+        if (node == null) return;
+        Node current = this;
+        while (current.getRight() != null) {
+            current = current.getRight();
+        }
+
+        current.setRight(node);
+    }
 
     public int getDepth() {
         return depth;
@@ -61,7 +80,6 @@ public class Node implements Comparable<Node> {
 
     public void setLeft(Node node) {
         this.left = node;
-//        if (node != null) node.setParent(this);
     }
 
     public Node getRight() {
@@ -70,8 +88,6 @@ public class Node implements Comparable<Node> {
 
     public void setRight(Node node) {
         this.right = node;
-//        if (node != null) node.setParent(this);
-
     }
 
     public Node getParent() {

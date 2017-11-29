@@ -18,6 +18,7 @@ public class IntervalDeletionProvider {
         numberOfAllNodes = data.getNumberOfNodesInTree();
         allNodesValues = data.getAllNodesValues();
 
+
         numberOfDeletedNodes = 0;
         components = new TreeSet<>();
     }
@@ -114,9 +115,11 @@ public class IntervalDeletionProvider {
             index++;
 
             int next = allNodesValue;
-            if (minValueInSubtree > next) continue;
+            if (minValueInSubtree > next)
+                continue;
 
-            if (minValueInSubtree == next) minIndex = index;
+            if (minValueInSubtree == next)
+                minIndex = index;
 
             if (maxValueInSubtree == next) {
                 maxIndex = index;
@@ -146,6 +149,7 @@ public class IntervalDeletionProvider {
             iter.next();
         }
         int nodeValue = iter.next();
+
 
         Node previous = null;
         Node current = null;
@@ -333,5 +337,4 @@ public class IntervalDeletionProvider {
             }
         }
     }
-
 }

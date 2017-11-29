@@ -25,32 +25,38 @@ public class IntervalDeletionProvider {
     public AbstractMap.SimpleEntry<Integer, Integer> solve() {
         AbstractMap.SimpleEntry<Integer, Integer> solution = null;
 
+        if (interval.intervalState(root.getValue()) != IntervalResult.IN_INTERVAL) components.add(root);
+
         startRemoving(root);
 
-        System.err.println("Total removed nodes: " + numberOfDeletedNodes);
+        System.err.println("Components count: " + components.size());
 
-        Node newRoot = merge(0, allNodesValues.size() - 1);
+        Node newRoot = getRootComponent(0, allNodesValues.size() - 1);
+        solution = removeSubTree(newRoot);
 
+        assert newRoot != null;
+
+        newRoot.insertLeft(merge(0, solution.getKey() - 1, true));
+        newRoot.insertRight(merge(solution.getValue() + 1, allNodesValues.size() - 1, true));
+        System.err.println("New root: " + newRoot.getValue());
         return getResult(newRoot);
     }
 
-    private Node merge(int min, int max) {
+    private Node merge(int min, int max, boolean isLeft) {
         Node root = getRootComponent(min, max);
-        if (root == null)
-            return null;
+        if (root == null) return null;
 
-        // TODO: 28.11.2017 check last/first
-//        if((root == components.last() && components.size() == 1)){
-//            components.remove(root);
-//            return root;
-//        }
-//        components.remove(root);
-//        if(root == components.first() || root == components.last()) return root;
+        if (isLeft) {
+            if (root == components.first()) return root;
+
+        } else {
+            if (root == components.last()) return root;
+        }
 
         AbstractMap.SimpleEntry<Integer, Integer> minMax = removeSubTree(root);
 
-        root.insertLeft(merge(min, minMax.getKey() - 1));
-        root.insertRight(merge(minMax.getValue() + 1, max));
+        root.insertLeft(merge(min, minMax.getKey() - 1, true));
+        root.insertRight(merge(minMax.getValue() + 1, max, false));
 
         return root;
     }
@@ -58,11 +64,9 @@ public class IntervalDeletionProvider {
     private AbstractMap.SimpleEntry<Integer, Integer> getResult(Node node) {
         int maxDepth = 0;
         Queue<Node> toVisit = new LinkedList<>();
-
         toVisit.add(node);
         int[] count = new int[numberOfAllNodes - numberOfDeletedNodes];
         node.setDepth(0);
-        count[0] = 1;
 
         while (!toVisit.isEmpty()) {
             Node processed = toVisit.poll();
@@ -110,11 +114,9 @@ public class IntervalDeletionProvider {
             index++;
 
             int next = allNodesValue;
-            if (minValueInSubtree > next)
-                continue;
+            if (minValueInSubtree > next) continue;
 
-            if (minValueInSubtree == next)
-                minIndex = index;
+            if (minValueInSubtree == next) minIndex = index;
 
             if (maxValueInSubtree == next) {
                 maxIndex = index;
@@ -169,27 +171,6 @@ public class IntervalDeletionProvider {
         }
         return current;
     }
-//    private Node getRootComponent(int[] nodesValues, int min, int max) {
-//        int index = (1 + max - min) / 2;
-//        int nodeValue = nodesValues[index];
-//
-//        Node previous = null;
-//        for (Node componentRoot : components) {
-//
-//            if (previous != null && previous.getValue() <= nodeValue && componentRoot.getValue() >= nodeValue) {
-//                if (containsNode(previous, nodeValue)) {
-//                    return previous;
-//                } else if (containsNode(componentRoot, nodeValue)) {
-//                    return componentRoot;
-//                } else {
-//                    throw new IllegalStateException("Left component is smaller and right is bigger but they does not contain " + nodeValue);
-//                }
-//            }
-//
-//            previous = componentRoot;
-//        }
-//        throw new IllegalStateException("Value was not found");
-//    }
 
     private boolean containsNode(Node startNode, int value) {
         if (startNode == null)
@@ -268,6 +249,7 @@ public class IntervalDeletionProvider {
     }
 
     private Node getMostTopNode(Node node) {
+        if (node == null) return null;
         while (node.getParent() != null) {
             node = node.getParent();
         }
@@ -275,29 +257,23 @@ public class IntervalDeletionProvider {
     }
 
     private Node getMostRight(Node node) {
-        boolean flag = false;
-        while (node.getRight() != null && !flag) {
-            if (interval.intervalState(node.getRight().getValue()) != IntervalResult.IN_INTERVAL) {
-                node = node.getRight();
-                continue;
+        while (node != null) {
+            if (interval.intervalState(node.getValue()) == IntervalResult.IN_INTERVAL) {
+                return node;
             }
-
-            flag = true;
+            node = node.getRight();
         }
-        return flag ? node : null;
+        return null;
     }
 
     private Node getMostLeft(Node node) {
-        boolean flag = false;
-        while (node.getLeft() != null && !flag) {
-            if (interval.intervalState(node.getLeft().getValue()) != IntervalResult.IN_INTERVAL) {
-                node = node.getLeft();
-                continue;
+        while (node != null) {
+            if (interval.intervalState(node.getValue()) == IntervalResult.IN_INTERVAL) {
+                return node;
             }
-
-            flag = true;
+            node = node.getLeft();
         }
-        return flag ? node : null;
+        return null;
     }
 
     private void removeNode(Node toRemove) {
@@ -322,14 +298,9 @@ public class IntervalDeletionProvider {
                     toRemove.setRight(null);
                     components.add(right);
 
-                    Node nextLeft = right.getLeft();
+                    Node nextLeft = getMostLeft(right.getLeft());
                     if (nextLeft != null) {
-                        if (interval.intervalState(nextLeft.getValue()) == IntervalResult.IN_INTERVAL) {
-                            removeNode(nextLeft);
-                        } else {
-                            Node possibleRemoval = getMostLeft(nextLeft);
-                            if (possibleRemoval != null) removeNode(possibleRemoval);
-                        }
+                        removeNode(nextLeft);
                     }
 
                     break;
@@ -351,14 +322,9 @@ public class IntervalDeletionProvider {
                     toRemove.setLeft(null);
                     components.add(left);
 
-                    Node nextRight = left.getRight();
+                    Node nextRight = getMostRight(left.getRight());
                     if (nextRight != null) {
-                        if (interval.intervalState(nextRight.getValue()) == IntervalResult.IN_INTERVAL) {
-                            removeNode(nextRight);
-                        } else {
-                            Node possibleRemoval = getMostRight(nextRight);
-                            if (possibleRemoval != null) removeNode(possibleRemoval);
-                        }
+                        removeNode(nextRight);
                     }
                     break;
                 case IN_INTERVAL:

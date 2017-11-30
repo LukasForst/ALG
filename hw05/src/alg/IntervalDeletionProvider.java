@@ -9,19 +9,21 @@ public class IntervalDeletionProvider {
 
     private final int numberOfAllNodes;
     private final TreeSet<Node> components;
-    private final Collection<Integer> allNodesValues;
+
+    private int[] valuesAfterDeletion;
     private int numberOfDeletedNodes;
 
     public IntervalDeletionProvider(Data data) {
         interval = data.getInterval();
         root = data.getTreeRoot();
         numberOfAllNodes = data.getNumberOfNodesInTree();
-        allNodesValues = data.getAllNodesValues();
 
 
         numberOfDeletedNodes = 0;
         components = new TreeSet<>();
     }
+
+    private int idx = 0;
 
     public AbstractMap.SimpleEntry<Integer, Integer> solve() {
         AbstractMap.SimpleEntry<Integer, Integer> solution = null;
@@ -30,34 +32,42 @@ public class IntervalDeletionProvider {
 
         startRemoving(root);
 
-        System.err.println("Components count: " + components.size());
+        valuesAfterDeletion = new int[numberOfAllNodes - numberOfDeletedNodes];
+        createNewCollectionOfValues();
+//        System.err.println("Components count: " + components.size());
 
-        Node newRoot = getRootComponent(0, allNodesValues.size() - 1);
+        Node newRoot = getRootComponent(0, valuesAfterDeletion.length - 1);
         solution = removeSubTree(newRoot);
 
         assert newRoot != null;
 
-        newRoot.insertLeft(merge(0, solution.getKey() - 1, true));
-        newRoot.insertRight(merge(solution.getValue() + 1, allNodesValues.size() - 1, true));
-        System.err.println("New root: " + newRoot.getValue());
+        newRoot.insertLeft(merge(0, solution.getKey() - 1));
+        newRoot.insertRight(merge(solution.getValue() + 1, valuesAfterDeletion.length - 1));
+//        System.err.println("New root: " + newRoot.getValue());
         return getResult(newRoot);
     }
 
-    private Node merge(int min, int max, boolean isLeft) {
+    private void createNewCollectionOfValues() {
+        for (Node node : components) {
+            recursiveCreate(node);
+        }
+    }
+
+    private void recursiveCreate(Node node) {
+        if (node == null) return;
+        recursiveCreate(node.getLeft());
+        valuesAfterDeletion[idx++] = node.getValue();
+        recursiveCreate(node.getRight());
+    }
+
+    private Node merge(int min, int max) {
         Node root = getRootComponent(min, max);
         if (root == null) return null;
 
-        if (isLeft) {
-            if (root == components.first()) return root;
-
-        } else {
-            if (root == components.last()) return root;
-        }
-
         AbstractMap.SimpleEntry<Integer, Integer> minMax = removeSubTree(root);
 
-        root.insertLeft(merge(min, minMax.getKey() - 1, true));
-        root.insertRight(merge(minMax.getValue() + 1, max, false));
+        root.insertLeft(merge(min, minMax.getKey() - 1));
+        root.insertRight(merge(minMax.getValue() + 1, max));
 
         return root;
     }
@@ -108,26 +118,7 @@ public class IntervalDeletionProvider {
             if (processed.getRight() != null) toVisit.push(processed.getRight());
         }
 
-        int index = -1;
-        int minIndex = Integer.MAX_VALUE;
-        int maxIndex = Integer.MIN_VALUE;
-        for (Integer allNodesValue : allNodesValues) {
-            index++;
-
-            int next = allNodesValue;
-            if (minValueInSubtree > next)
-                continue;
-
-            if (minValueInSubtree == next)
-                minIndex = index;
-
-            if (maxValueInSubtree == next) {
-                maxIndex = index;
-                break;
-            }
-        }
-
-        return new AbstractMap.SimpleEntry<>(minIndex, maxIndex);
+        return new AbstractMap.SimpleEntry<>(Arrays.binarySearch(valuesAfterDeletion, minValueInSubtree), Arrays.binarySearch(valuesAfterDeletion, maxValueInSubtree));
     }
 
     private Node getRootComponent(int min, int max) {
@@ -135,21 +126,7 @@ public class IntervalDeletionProvider {
         int nodesCount = max - min + 1;
 
         int index = ((1 + nodesCount) / 2) + min;
-
-        Iterator<Integer> iter = allNodesValues.iterator();
-        int idx = 0;
-        while (iter.hasNext() && idx < min) {
-            iter.next();
-            idx++;
-        }
-
-        int i = min + 1;
-        while (iter.hasNext() && i != index) {
-            i++;
-            iter.next();
-        }
-        int nodeValue = iter.next();
-
+        int nodeValue = valuesAfterDeletion[index - 1];
 
         Node previous = null;
         Node current = null;
@@ -183,22 +160,22 @@ public class IntervalDeletionProvider {
         stackToVisit.push(startNode);
         while (!stackToVisit.empty()) {
             Node processed = stackToVisit.pop();
-            if (processed.getValue() == value)
-                return true;
 
-            if (processed.getLeft() != null)
-                stackToVisit.push(processed.getLeft());
+            int val = processed.getValue();
+            if (val == value) return true;
 
-            if (processed.getRight() != null)
+            if (val < value && processed.getRight() != null) {
                 stackToVisit.push(processed.getRight());
+            } else if (processed.getLeft() != null) {
+                stackToVisit.push(processed.getLeft());
+            }
         }
 
         return false;
     }
 
     private void startRemoving(Node node) {
-        if (node == null)
-            return;
+        if (node == null) return;
 
         switch (interval.intervalState(node.getValue())) {
             case BIGGER:
@@ -221,13 +198,7 @@ public class IntervalDeletionProvider {
         switch (result) {
             case BIGGER:
                 if (interval.intervalState(parent.getValue()) == IntervalResult.SMALLER) {
-
-                    if (parent.getRight() == node) {
-                        parent.setRight(null);
-                    } else {
-                        throw new IllegalStateException("Parent is smaller but this is left child");
-                    }
-
+                    parent.setRight(null);
                     node.setParent(null);
                     components.add(node);
                     components.add(getMostTopNode(parent));
@@ -235,12 +206,7 @@ public class IntervalDeletionProvider {
                 break;
             case SMALLER:
                 if (interval.intervalState(parent.getValue()) == IntervalResult.BIGGER) {
-                    if (parent.getLeft() == node) {
-                        parent.setLeft(null);
-                    } else {
-                        throw new IllegalStateException("Parent is bugger but this is right child");
-                    }
-
+                    parent.setLeft(null);
                     node.setParent(null);
                     components.add(node);
                     components.add(getMostTopNode(parent));
@@ -282,7 +248,6 @@ public class IntervalDeletionProvider {
 
     private void removeNode(Node toRemove) {
         numberOfDeletedNodes++;
-        allNodesValues.remove(toRemove.getValue());
 
         Node parent = toRemove.getParent();
         if (parent != null) {

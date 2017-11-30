@@ -2,8 +2,6 @@ package alg;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Collection;
-import java.util.TreeSet;
 
 public class TreeReader {
     public Data read() {
@@ -12,15 +10,12 @@ public class TreeReader {
             BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             int numberOfNodes = Integer.parseInt(reader.readLine());
 
-            Collection<Integer> allNodes = new TreeSet<>();
             String[] dataRead = reader.readLine().split(" ");
             int rootValue = Integer.parseInt(dataRead[0]);
             Node root = new Node(rootValue, 0, null);
-            allNodes.add(rootValue);
 
             for (int i = 1; i < numberOfNodes; i++) {
                 int value = Integer.parseInt(dataRead[i]);
-                allNodes.add(value);
                 if (value > root.getValue()) {
                     addToRight(root, value, 1);
                 } else {
@@ -28,7 +23,7 @@ public class TreeReader {
                 }
             }
             dataRead = reader.readLine().split(" ");
-            data = new Data(root, numberOfNodes, new Interval(Integer.parseInt(dataRead[0]), Integer.parseInt(dataRead[1])), allNodes);
+            data = new Data(root, numberOfNodes, new Interval(Integer.parseInt(dataRead[0]), Integer.parseInt(dataRead[1])));
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalStateException("Reading fucked up. Ending");
@@ -44,10 +39,8 @@ public class TreeReader {
             parent.setLeft(toAdd);
         } else if (left.getValue() > valueToInsert) {
             addToLeft(left, valueToInsert, ++depth);
-        } else if (left.getValue() < valueToInsert) {
-            addToRight(left, valueToInsert, ++depth);
         } else {
-            throw new IllegalArgumentException("Wrong argument, this is set. Value " + valueToInsert + " cannot be inserted.");
+            addToRight(left, valueToInsert, ++depth);
         }
     }
 
@@ -58,10 +51,8 @@ public class TreeReader {
             parent.setRight(toAdd);
         } else if (right.getValue() > valueToInsert) {
             addToLeft(right, valueToInsert, ++depth);
-        } else if (right.getValue() < valueToInsert) {
-            addToRight(right, valueToInsert, ++depth);
         } else {
-            throw new IllegalArgumentException("Wrong argument, this is set. Value " + valueToInsert + " cannot be inserted.");
+            addToRight(right, valueToInsert, ++depth);
         }
     }
 }

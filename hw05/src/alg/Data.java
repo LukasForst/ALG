@@ -1,22 +1,15 @@
 package alg;
 
-import java.util.Collection;
 
 public class Data {
     private final Node treeRoot;
-    private final Collection<Integer> allNodesValues;
     private final int numberOfNodesInTree;
     private final Interval interval;
 
-    public Data(Node treeRoot, int numberOfNodesInTree, Interval interval, Collection<Integer> allNodesValues) {
+    public Data(Node treeRoot, int numberOfNodesInTree, Interval interval) {
         this.treeRoot = treeRoot;
         this.numberOfNodesInTree = numberOfNodesInTree;
         this.interval = interval;
-        this.allNodesValues = allNodesValues;
-    }
-
-    public Collection<Integer> getAllNodesValues() {
-        return allNodesValues;
     }
 
     public Node getTreeRoot() {

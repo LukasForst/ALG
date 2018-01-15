@@ -1,9 +1,6 @@
 package alg;
 
 
-import java.util.Set;
-import java.util.TreeSet;
-
 public class ExamSolver {
     private Point[][] matrix;
     private int rowsCount;
@@ -52,42 +49,14 @@ public class ExamSolver {
         currentPoint.previous.clear();
         currentPoint.previous.add(previousPoint);
 
-        int firstPrice = getNextPrice(previousPoint, rowIndex + 1, columnIndex);
-        int secondPrice = getNextPrice(previousPoint, rowIndex - 1, columnIndex);
-        int trhirdPrice = getNextPrice(previousPoint, rowIndex, columnIndex + 1);
-        int fourthPrice = getNextPrice(previousPoint, rowIndex, columnIndex - 1);
-
-        Set<Integer> q = new TreeSet<>();
-        q.add(firstPrice);
-        q.add(secondPrice);
-        q.add(trhirdPrice);
-        q.add(fourthPrice);
-
-        Point end = matrix[endRowIndex][endColumnIndex];
-        for (int price : q) {
-            if (end.reconfigPrice != Integer.MAX_VALUE - 20 && end.pathPrice != Integer.MAX_VALUE - 20) {
-                if (price > end.reconfigPrice + end.pathPrice) continue;
-            }
-            if (price == firstPrice) goDeeper(previousPoint, currentPoint, rowIndex + 1, columnIndex);
-            if (price == secondPrice) goDeeper(previousPoint, currentPoint, rowIndex - 1, columnIndex);
-            if (price == trhirdPrice) goDeeper(previousPoint, currentPoint, rowIndex, columnIndex + 1);
-            if (price == fourthPrice) goDeeper(previousPoint, currentPoint, rowIndex, columnIndex - 1);
-        }
+        goDeeper(previousPoint, currentPoint, rowIndex + 1, columnIndex);
+        goDeeper(previousPoint, currentPoint, rowIndex - 1, columnIndex);
+        goDeeper(previousPoint, currentPoint, rowIndex, columnIndex + 1);
+        goDeeper(previousPoint, currentPoint, rowIndex, columnIndex - 1);
     }
 
     private boolean hasToReconfigure(Point from, Point to) {
         return from.sector != to.sector && Math.abs(from.sectorSize - to.sectorSize) > Math.min(to.sectorSize, from.sectorSize);
-    }
-
-    private int getNextPrice(Point current, int rowIndex, int columnIndex) {
-        if (rowIndex >= rowsCount || rowIndex < 0 || columnIndex >= columnsCount || columnIndex < 0)
-            return Integer.MAX_VALUE;
-        Point next = matrix[rowIndex][columnIndex];
-        if (current.reconfigPrice == Integer.MAX_VALUE - 20) return Integer.MAX_VALUE;
-        int price = hasToReconfigure(next, current) ? current.reconfigPrice + 1 : current.reconfigPrice;
-
-        if (current.pathPrice == Integer.MAX_VALUE - 20) return Integer.MAX_VALUE;
-        return price + current.pathPrice + 1;
     }
 
     private void goDeeper(Point previousPoint, Point currentPoint, int rowIndex, int columnIndex) {

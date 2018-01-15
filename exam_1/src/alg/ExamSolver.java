@@ -1,7 +1,11 @@
 package alg;
 
+
+import java.util.Set;
+import java.util.TreeSet;
+
 public class ExamSolver {
-    private int[][] matrix;
+    private Point[][] matrix;
     private int rowsCount;
     private int columnsCount;
     private int startRowIndex;
@@ -9,7 +13,7 @@ public class ExamSolver {
     private int endRowIndex;
     private int endColumnIndex;
 
-    public ExamSolver(int[][] matrix, int rowsCount, int columnsCount, int startRowIndex, int startColumnIndex, int endRowIndex, int endColumnIndex) {
+    public ExamSolver(Point[][] matrix, int rowsCount, int columnsCount, int startRowIndex, int startColumnIndex, int endRowIndex, int endColumnIndex) {
         this.matrix = matrix;
         this.rowsCount = rowsCount;
         this.columnsCount = columnsCount;
@@ -20,10 +24,156 @@ public class ExamSolver {
     }
 
     public Result solve() {
-        int reconfigPrice = Integer.MAX_VALUE;
-        int pathPrice = Integer.MAX_VALUE;
+        startReCreatingMatrix();
 
+        Point start = matrix[startRowIndex][startColumnIndex];
+        start.reconfigPrice = 0;
+        start.pathPrice = 0;
 
-        return new Result(reconfigPrice, pathPrice);
+        goDeeper(null, start, startRowIndex + 1, startColumnIndex);
+        goDeeper(null, start, startRowIndex - 1, startColumnIndex);
+        goDeeper(null, start, startRowIndex, startColumnIndex + 1);
+        goDeeper(null, start, startRowIndex, startColumnIndex - 1);
+
+        Point end = matrix[endRowIndex][endColumnIndex];
+        return new Result(end.reconfigPrice, end.pathPrice);
+    }
+
+    private void createPathsFrom(Point previousPoint, int rowIndex, int columnIndex) {
+        Point currentPoint = matrix[rowIndex][columnIndex];
+
+        if (hasToReconfigure(previousPoint, currentPoint)) {
+            currentPoint.reconfigPrice = previousPoint.reconfigPrice + 1;
+        } else {
+            currentPoint.reconfigPrice = previousPoint.reconfigPrice;
+        }
+
+        currentPoint.pathPrice = previousPoint.pathPrice + 1;
+        currentPoint.previous.clear();
+        currentPoint.previous.add(previousPoint);
+
+        int firstPrice = getNextPrice(previousPoint, rowIndex + 1, columnIndex);
+        int secondPrice = getNextPrice(previousPoint, rowIndex - 1, columnIndex);
+        int trhirdPrice = getNextPrice(previousPoint, rowIndex, columnIndex + 1);
+        int fourthPrice = getNextPrice(previousPoint, rowIndex, columnIndex - 1);
+
+        Set<Integer> q = new TreeSet<>();
+        q.add(firstPrice);
+        q.add(secondPrice);
+        q.add(trhirdPrice);
+        q.add(fourthPrice);
+
+        Point end = matrix[endRowIndex][endColumnIndex];
+        for (int price : q) {
+            if (end.reconfigPrice != Integer.MAX_VALUE - 20 && end.pathPrice != Integer.MAX_VALUE - 20) {
+                if (price > end.reconfigPrice + end.pathPrice) continue;
+            }
+            if (price == firstPrice) goDeeper(previousPoint, currentPoint, rowIndex + 1, columnIndex);
+            if (price == secondPrice) goDeeper(previousPoint, currentPoint, rowIndex - 1, columnIndex);
+            if (price == trhirdPrice) goDeeper(previousPoint, currentPoint, rowIndex, columnIndex + 1);
+            if (price == fourthPrice) goDeeper(previousPoint, currentPoint, rowIndex, columnIndex - 1);
+        }
+    }
+
+    private boolean hasToReconfigure(Point from, Point to) {
+        return from.sector != to.sector && Math.abs(from.sectorSize - to.sectorSize) > Math.min(to.sectorSize, from.sectorSize);
+    }
+
+    private int getNextPrice(Point current, int rowIndex, int columnIndex) {
+        if (rowIndex >= rowsCount || rowIndex < 0 || columnIndex >= columnsCount || columnIndex < 0)
+            return Integer.MAX_VALUE;
+        Point next = matrix[rowIndex][columnIndex];
+        if (current.reconfigPrice == Integer.MAX_VALUE - 20) return Integer.MAX_VALUE;
+        int price = hasToReconfigure(next, current) ? current.reconfigPrice + 1 : current.reconfigPrice;
+
+        if (current.pathPrice == Integer.MAX_VALUE - 20) return Integer.MAX_VALUE;
+        return price + current.pathPrice + 1;
+    }
+
+    private void goDeeper(Point previousPoint, Point currentPoint, int rowIndex, int columnIndex) {
+        if (rowIndex >= rowsCount || rowIndex < 0 || columnIndex >= columnsCount || columnIndex < 0) return;
+
+        if (previousPoint == null) {
+            createPathsFrom(currentPoint, rowIndex, columnIndex);
+            return;
+        }
+
+        Point next = matrix[rowIndex][columnIndex];
+        if (next == previousPoint) return;
+
+        if (hasToReconfigure(next, currentPoint)) {
+            if (currentPoint.reconfigPrice + 1 < next.reconfigPrice)
+                createPathsFrom(currentPoint, rowIndex, columnIndex);
+            else if (currentPoint.reconfigPrice + 1 == next.reconfigPrice) {
+                if (currentPoint.pathPrice + 1 < next.pathPrice) createPathsFrom(currentPoint, rowIndex, columnIndex);
+                else if (currentPoint.pathPrice + 1 == next.pathPrice) {
+                    next.previous.add(currentPoint);
+                }
+            }
+        } else {
+            if (currentPoint.reconfigPrice < next.reconfigPrice) createPathsFrom(currentPoint, rowIndex, columnIndex);
+            else if (currentPoint.reconfigPrice == next.reconfigPrice) {
+                if (currentPoint.pathPrice + 1 < next.pathPrice) createPathsFrom(currentPoint, rowIndex, columnIndex);
+                else if (currentPoint.pathPrice + 1 == next.pathPrice) next.previous.add(currentPoint);
+            }
+        }
+    }
+
+    private void startReCreatingMatrix() {
+        for (int row = 0; row < rowsCount; row++) {
+            for (int column = 0; column < columnsCount; column++) {
+                Point current = matrix[row][column];
+                if (current.sector != null) continue;
+
+                Sector sector = new Sector();
+                current.sector = sector;
+                recreateMatrix(current.value, row, column, sector);
+            }
+        }
+
+        for (int row = 0; row < rowsCount; row++) {
+            for (int column = 0; column < columnsCount; column++) {
+                Point curr = matrix[row][column];
+                curr.sectorSize = curr.sector.size;
+            }
+        }
+    }
+
+    private void recreateMatrix(int value, int rowIndex, int columnIndex, Sector sector) {
+        if (rowIndex - 1 >= 0) {
+            Point curr = matrix[rowIndex - 1][columnIndex];
+            if (curr.sector == null && curr.value == value) {
+                curr.sector = sector;
+                sector.size++;
+                recreateMatrix(value, rowIndex - 1, columnIndex, sector);
+            }
+        }
+
+        if (rowIndex + 1 < rowsCount) {
+            Point curr = matrix[rowIndex + 1][columnIndex];
+            if (curr.sector == null && curr.value == value) {
+                curr.sector = sector;
+                sector.size++;
+                recreateMatrix(value, rowIndex + 1, columnIndex, sector);
+            }
+        }
+
+        if (columnIndex - 1 >= 0) {
+            Point curr = matrix[rowIndex][columnIndex - 1];
+            if (curr.sector == null && curr.value == value) {
+                curr.sector = sector;
+                sector.size++;
+                recreateMatrix(value, rowIndex, columnIndex - 1, sector);
+            }
+        }
+
+        if (columnIndex + 1 < columnsCount) {
+            Point curr = matrix[rowIndex][columnIndex + 1];
+            if (curr.sector == null && curr.value == value) {
+                curr.sector = sector;
+                sector.size++;
+                recreateMatrix(value, rowIndex, columnIndex + 1, sector);
+            }
+        }
     }
 }

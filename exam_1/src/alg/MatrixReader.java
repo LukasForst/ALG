@@ -21,9 +21,12 @@ public class MatrixReader {
             int endRowIndex = end[0] - 1;
             int endColumnIndex = end[1] - 1;
 
-            int[][] result = new int[rows][];
+            Point[][] result = new Point[rows][columns];
             for (int i = 0; i < rows; i++) {
-                result[i] = Arrays.stream(reader.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+                int[] readData = Arrays.stream(reader.readLine().split(" ")).mapToInt(Integer::parseInt).toArray();
+                for (int j = 0; j < readData.length; j++) {
+                    result[i][j] = new Point(readData[j]);
+                }
             }
 
             return new ExamSolver(result, rows, columns, startRowIndex, startColumnIndex, endRowIndex, endColumnIndex);

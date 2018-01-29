@@ -28,41 +28,47 @@ public class DataReader {
                 int startY = data[1];
                 int endX = data[2];
                 int endY = data[3];
-                int maxBot = 0;
-
-                int stX;
-                int edX;
-                if (startX > endX) {
-                    stX = endX;
-                    edX = startX;
-                } else {
-                    stX = startX;
-                    edX = endX;
-                }
-                int stY;
-                int edY;
-                if (startY > endY) {
-                    stY = endY;
-                    edY = stY;
-                } else {
-                    stY = startY;
-                    edY = endY;
-                }
-
-                for (int x = stX; x <= edX; x++) {
-                    for (int y = stY; y <= edY; y++) {
-                        maxBot += matrix[x][y];
-                    }
-                }
+                int maxBot = getMaxForBot(matrix, startX, endX, startY, endY);
 
                 bots[i] = new Bot(i, startX, startY, endX, endY, maxBot);
                 botMax[i] = maxBot;
             }
 
-            return new Solver(botsCount, bots, matrix, botMax, new boolean[rowsCount][columnsCount], rowsCount, columnsCount);
+            return new Solver(botsCount, bots, matrix, botMax, rowsCount, columnsCount);
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalStateException("Reading fucked up. Ending");
+        }
+    }
+
+    private static int getMaxForBot(int[][] matrix, int startRowIdx, int endRowIdx, int startColIdx, int endColIdx) {
+        int harvested = 0;
+        if (startRowIdx == endRowIdx) {
+            int x = startRowIdx;
+            if (startColIdx > endColIdx) {
+                for (int y = startColIdx; y >= endColIdx; y--) {
+                    harvested += matrix[x][y];
+                }
+                return harvested;
+            } else {
+                for (int y = startColIdx; y <= endColIdx; y++) {
+                    harvested += matrix[x][y];
+                }
+                return harvested;
+            }
+
+        } else if (startRowIdx > endRowIdx) {
+            int y = startColIdx;
+            for (int x = startRowIdx; x >= endRowIdx; x--) {
+                harvested += matrix[x][y];
+            }
+            return harvested;
+        } else {
+            int y = startColIdx;
+            for (int x = startRowIdx; x <= endRowIdx; x++) {
+                harvested += matrix[x][y];
+            }
+            return harvested;
         }
     }
 }
